@@ -4,7 +4,7 @@ using LibPhoneNumber = PhoneNumbers.PhoneNumber;
 namespace Domain.ValueObjects;
 public readonly record struct PhoneNumber
 {
-    public string? Value {get;}
+    public string Value {get;}
 
     private PhoneNumber(string value)
     {
@@ -16,6 +16,7 @@ public readonly record struct PhoneNumber
             parsed = phoneUtil.Parse(value, "ZA");
         
         }
+
         catch(NumberParseException err)
         {
             throw new ArgumentException("Invalid phone number.", nameof(value), err);
