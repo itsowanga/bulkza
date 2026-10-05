@@ -49,7 +49,6 @@ public class Merchant
 
         }
     }
-
     private static void DateValidation(DateTimeOffset registrationDate)
     {
         if (registrationDate.CompareTo(DateTimeOffset.MinValue) == 0)
