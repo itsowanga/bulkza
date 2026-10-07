@@ -6,8 +6,8 @@ namespace Domain;
 public class Product
 {
     public ProductId ProductId {get; private set;}
-    public string SKU {get; private set;}
-    public string Name {get; private set;}
+    public string SKU {get; init;}
+    public string Name {get; init;}
     public string? Description {get; private set;}
     public ProductCategory Category {get; private set;}
     public UnitOfMeasure UnitOfMeasure {get; private set;}
@@ -74,5 +74,50 @@ public class Product
         }
     }
 
+    public void UpdateDescription(string description)
+    {
+        ValidateOptional(description);
+        Description = description;
+    }
+
+    public void UpdateCategory(ProductCategory category)
+    {
+        if (!Enum.IsDefined(category))
+        {
+            throw new ArgumentException($"{nameof(category)} is invalid.");
+        }
+
+        Category = category;
+    }
+
+    public void UpdateUnitOfMeasure(UnitOfMeasure unitOfMeasure)
+    {
+       if (!Enum.IsDefined(unitOfMeasure))
+        {
+            throw new ArgumentException($"{nameof(unitOfMeasure)} is invalid.");
+        }
+
+        UnitOfMeasure = unitOfMeasure; 
+    }
+
+    public void UpdateBasePrice(Money basePrice)
+    {
+        if (basePrice = default)
+        {
+            throw new ArgumentException($"{nameof(basePrice)} cannot contain the default value.");
+        }
+
+        BasePrice = basePrice; 
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+    }
 
 }
