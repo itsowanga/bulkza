@@ -1,19 +1,18 @@
-namespace Domain.ValueObjects
+namespace Domain.ValueObjects;
+public readonly record struct MerchantId
 {
-    public readonly record struct MerchantId
-    {
-        public Guid Value {get;}
+    public Guid Value {get;}
 
-        private MerchantId(Guid value)
+    private MerchantId(Guid value)
+    {
+        if (value == Guid.Empty)
         {
-            if (value == Guid.Empty)
-            {
-                throw new ArgumentException("MerchantId cannot be empty");
-            }
-            Value = value;
+            throw new ArgumentException("MerchantId cannot be empty");
         }
-        public static MerchantId New() => new(Guid.NewGuid());
-        public static MerchantId Create(Guid value) => new(value);
-        public override string ToString() => Value.ToString();
+            Value = value;
     }
+    public static MerchantId New() => new(Guid.NewGuid());
+    public static MerchantId Create(Guid value) => new(value);
+    public override string ToString() => Value.ToString();
+    
 }
