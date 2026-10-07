@@ -1,51 +1,44 @@
+using Domain.Enums;
+using Domain.ValueObjects;
+
 namespace Domain;
 public class BulkPool
 {
     public PoolId PoolId {get; private set;}
     public ProductId ProductId {get; private set;}
     public BulkPoolStatus Status {get; private set;}
-    public Quantity CurrentQuantity {get; private set;}
+    public int CurrentQuantity {get; private set;}
     public Quantity MinimumQuantity {get; private set;}
     public int MinimumMerchants {get; private set;}
     public DateTimeOffset Deadline {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    public IReadOnlyList<Participant> Participants {get; private set;}
+    private List<Participant> _participants;
 
     public BulkPool( PoolId poolId,
                      ProductId productId,
-                     BulkPoolStatus status,
-                     Quantity currentQuantity,
                      Quantity minimumQuantity,
                      int minimumMerchants,
-                     DateTimeOffset deadline,
-                     IReadOnlyList<Participant> participants)
+                     DateTimeOffset deadline
+                     )
     {
-        
-        if(!Enum.IsDefined(status))
-        {
-            throw new ArgumentException("Invalid bulk pool status.");
-        }
-
-        ValidateDeadline(deadline);
-        ValidateMerchants(minimumMerchants);
-        ValidateParticipants(participants, currentQuantity.Value);
-
+                
         PoolId = poolId;
-        ProductId = productId;
-        Status = status;
-        CurrentQuantity = currentQuantity;
-        
+        ProductId = productId;        
         MinimumQuantity = minimumQuantity;
         MinimumMerchants = minimumMerchants;
         Deadline = deadline;
         CreatedAt = DateTimeOffset.UtcNow;
-        Participants = participants;
+        _participants = new List<Participant>();
+        CurrentQuantity = 0;
+        Status = BulkPoolStatus.Open;
+        ValidateDeadline(deadline);
+        ValidateMerchants(minimumMerchants);
         
     }
 
-    private static void ValidateDeadline(DateTimeOffset date)
+    private void ValidateDeadline(DateTimeOffset date)
     {
-        if (date.CompareTo(DateTimeOffset.UtcNow) != 1)
+        if (date <= CreatedAt)
         {
             throw new ArgumentException("Deadline must be into the future.");
         }
@@ -60,35 +53,118 @@ public class BulkPool
         }
     }
 
-    private static void ValidateParticipants(IReadOnlyList<Participant> participants, int currentQuantity)
+
+    public IReadOnlyList<Participant> Participants => _participants;
+    public void Join (MerchantId merchantId, Quantity quantity)
     {
-        HashSet<MerchantId> merchantIdList = [];
-        int quantitySum= 0;
-
-        ArgumentNullException.ThrowIfNull(participants);
-
-        foreach (var participant in participants)
+        if (Status != BulkPoolStatus.Open)
         {
-           
-            if (participant.Equals(default(Participant)))
-            {
-                throw new ArgumentException($"{nameof(participants)} cannot contain a default participant.");
-            }
-
-            MerchantId merchantId = participant.MerchantId;
-
-            if (merchantIdList.Contains(merchantId))
-            {
-                throw new ArgumentException($"{nameof(participants)} contains duplicate merchant ids.");
-            }
-            merchantIdList.Add(merchantId);
-            quantitySum += participant.Quantity.Value;
+            throw new InvalidOperationException("Pool is not open for joining.");
         }
 
-
-        if (quantitySum != currentQuantity)
+        if (Deadline <= DateTimeOffset.UtcNow)
         {
-            throw new ArgumentException("Sum of participant quantities must equal current quantity.", nameof(participants));
+            throw new InvalidOperationException("Pool's deadline has passed.");
         }
+
+    
+        foreach (var participant in _participants)
+        {
+            if(participant.MerchantId == merchantId)
+            {
+                throw new InvalidOperationException("Participant has already joined the pool.");
+            }
+        }
+
+        _participants.Add(Participant.Create(merchantId, quantity));
+        CurrentQuantity += quantity.Value;
+
+        if (CurrentQuantity >= MinimumQuantity.Value && _participants.Count >= MinimumMerchants)
+        {
+            Status = BulkPoolStatus.ThresholdMet;
+        }
+        
     }
-}
+
+    public void Leave(MerchantId merchantId)
+    {
+        if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet)
+        {
+            throw new InvalidOperationException("Pool cannot be left.");
+        }
+
+        int quantity = 0;
+        Participant foundParticipant = default;
+
+        foreach (var participant in _participants)
+        {
+            if(participant.MerchantId == merchantId)
+            {
+                quantity = participant.Quantity.Value;
+                foundParticipant = participant;
+                break;
+            }
+        }   
+
+        if (foundParticipant == default)
+        {
+            throw new InvalidOperationException("Participant is not joined in this pool.");
+        }
+
+        _participants.Remove(foundParticipant);
+
+         CurrentQuantity -= quantity;
+
+         if (CurrentQuantity < MinimumQuantity.Value || _participants.Count < MinimumMerchants)
+        {
+            Status = BulkPoolStatus.Open;
+        }
+        }
+
+   
+
+    public void Lock()
+    {
+        if(Status != BulkPoolStatus.ThresholdMet)
+        {
+            throw new InvalidOperationException("Pool can only be locked once its threshold has been met.");
+
+        }
+
+        Status = BulkPoolStatus.Locked;
+
+    }
+
+    public void Finalize()
+    {
+        if (Status != BulkPoolStatus.Locked)
+        {
+            throw new InvalidOperationException("Pool can only be finalized once it has been locked.");
+        }
+
+        Status = BulkPoolStatus.Finalized;
+    }
+
+    public void Expire()
+    {
+        if (DateTimeOffset.UtcNow <= Deadline || (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet))
+        {
+            throw new InvalidOperationException("Pool needs to be open or threshold met state to expire.");
+
+        }
+
+        Status = BulkPoolStatus.Expired;
+    }
+
+        public void Cancel()
+    {
+        if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet)
+        {
+            throw new InvalidOperationException("Pool needs to be open or threshold met state to be cancelled.");
+
+        }
+
+        Status = BulkPoolStatus.Cancelled;
+    }
+
+ }
