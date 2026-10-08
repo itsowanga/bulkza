@@ -22,7 +22,15 @@ public class BulkPool
                      DateTimeOffset deadline
                      )
     {
-                
+        if (poolId == default)
+        {
+            throw new ArgumentException($"{nameof(poolId)} cannot be the default value.");
+        }
+
+        if (productId == default)
+        {
+            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+        }
         PoolId = poolId;
         ProductId = productId;        
         MinimumQuantity = minimumQuantity;
