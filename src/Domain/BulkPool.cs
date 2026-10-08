@@ -88,7 +88,7 @@ public class BulkPool
 
     public void Leave(MerchantId merchantId)
     {
-        if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet)
+        if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet && DateTimeOffset.UtcNow > Deadline)
         {
             throw new InvalidOperationException("Pool cannot be left.");
         }
