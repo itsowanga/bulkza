@@ -1,4 +1,5 @@
 using Domain.Enums;
+using Domain.Events;
 using Domain.ValueObjects;
 
 namespace Domain;
@@ -13,7 +14,7 @@ public class BulkPool
     public DateTimeOffset Deadline {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
     private List<Participant> _participants;
-
+    private List<IDomainEvent> _domainEvents;
     public BulkPool( PoolId poolId,
                      ProductId productId,
                      Quantity minimumQuantity,
@@ -33,6 +34,7 @@ public class BulkPool
         Status = BulkPoolStatus.Open;
         ValidateDeadline(deadline);
         ValidateMerchants(minimumMerchants);
+        _domainEvents = new List<IDomainEvent>();
         
     }
 
@@ -45,7 +47,7 @@ public class BulkPool
 
     }
 
-    private static void ValidateMerchants(int minimumMerchants)
+    private void ValidateMerchants(int minimumMerchants)
     {
         if (minimumMerchants < 1)
         {
@@ -55,6 +57,8 @@ public class BulkPool
 
 
     public IReadOnlyList<Participant> Participants => _participants;
+    public IReadOnlyList<IDomainEvent> DomainEvents => _domainEvents;
+    public void ClearDomainEvents() => _domainEvents.Clear();
     public void Join (MerchantId merchantId, Quantity quantity)
     {
         if (Status != BulkPoolStatus.Open)
@@ -78,17 +82,19 @@ public class BulkPool
 
         _participants.Add(Participant.Create(merchantId, quantity));
         CurrentQuantity += quantity.Value;
+        _domainEvents.Add(new MerchantJoinedPool(EventId.New(), DateTimeOffset.UtcNow, PoolId, merchantId, quantity));
 
         if (CurrentQuantity >= MinimumQuantity.Value && _participants.Count >= MinimumMerchants)
         {
             Status = BulkPoolStatus.ThresholdMet;
+            _domainEvents.Add(new PoolThresholdReached(EventId.New(), DateTimeOffset.UtcNow, PoolId, CurrentQuantity, _participants.Count));
         }
         
     }
 
     public void Leave(MerchantId merchantId)
     {
-        if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet && DateTimeOffset.UtcNow > Deadline)
+        if ((Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet) || DateTimeOffset.UtcNow > Deadline)
         {
             throw new InvalidOperationException("Pool cannot be left.");
         }
@@ -113,15 +119,14 @@ public class BulkPool
 
         _participants.Remove(foundParticipant);
 
-         CurrentQuantity -= quantity;
+        CurrentQuantity -= quantity;
+        _domainEvents.Add(new MerchantLeftPool(EventId.New(), DateTimeOffset.UtcNow, PoolId, merchantId, Quantity.Create(quantity)));
 
          if (CurrentQuantity < MinimumQuantity.Value || _participants.Count < MinimumMerchants)
         {
             Status = BulkPoolStatus.Open;
         }
         }
-
-   
 
     public void Lock()
     {
@@ -132,6 +137,7 @@ public class BulkPool
         }
 
         Status = BulkPoolStatus.Locked;
+        _domainEvents.Add(new PoolLocked(EventId.New(), DateTimeOffset.UtcNow, PoolId));
 
     }
 
@@ -143,6 +149,7 @@ public class BulkPool
         }
 
         Status = BulkPoolStatus.Finalized;
+        _domainEvents.Add(new PoolFinalized(EventId.New(), DateTimeOffset.UtcNow, PoolId));
     }
 
     public void Expire()
@@ -150,10 +157,11 @@ public class BulkPool
         if (DateTimeOffset.UtcNow <= Deadline || (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet))
         {
             throw new InvalidOperationException("Pool needs to be open or threshold met state to expire.");
-
+            
         }
 
         Status = BulkPoolStatus.Expired;
+        _domainEvents.Add(new PoolExpired(EventId.New(), DateTimeOffset.UtcNow, PoolId));
     }
 
         public void Cancel()
@@ -161,10 +169,12 @@ public class BulkPool
         if (Status != BulkPoolStatus.Open && Status != BulkPoolStatus.ThresholdMet)
         {
             throw new InvalidOperationException("Pool needs to be open or threshold met state to be cancelled.");
-
+            
         }
 
         Status = BulkPoolStatus.Cancelled;
+        _domainEvents.Add(new PoolCancelled(EventId.New(), DateTimeOffset.UtcNow, PoolId));
+
     }
 
  }
