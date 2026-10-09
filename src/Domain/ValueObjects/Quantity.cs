@@ -7,7 +7,7 @@ public readonly record struct Quantity
     {
         if (value <= 0)
         {
-            throw new ArgumentException("Quantity must be greater than zero.");
+            throw new ArgumentException("Quantity must be greater than zero.", nameof(value));
 
         }
 

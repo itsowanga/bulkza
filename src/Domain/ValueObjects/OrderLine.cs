@@ -10,11 +10,11 @@ public readonly record struct OrderLine
     {
         if (productId == default)
         {
-            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+            throw new ArgumentException($"{nameof(productId)} cannot be the default value.", nameof(productId));
         }
         if (quantity == default)
         {
-            throw new ArgumentException($"{nameof(quantity)} cannot be the default value.");
+            throw new ArgumentException($"{nameof(quantity)} cannot be the default value.", nameof(quantity));
         }
  
         ProductId = productId;

@@ -8,13 +8,13 @@ public readonly record struct DiscountTier
     {
         if (discountPercentage < 0 || discountPercentage > 100)
         {
-            throw new ArgumentException($"{nameof(discountPercentage)} should be between 0 and 100.");
+            throw new ArgumentException($"{nameof(discountPercentage)} should be between 0 and 100.", nameof(discountPercentage));
 
         }
 
         if (minimumQuantity == default)
         {
-            throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.");
+            throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.", nameof(minimumQuantity));
         }
 
         MinimumQuantity = minimumQuantity;

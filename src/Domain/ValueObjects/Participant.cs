@@ -1,3 +1,5 @@
+using System.Data;
+
 namespace Domain.ValueObjects;
 public readonly record struct Participant
 {
@@ -6,6 +8,16 @@ public readonly record struct Participant
 
     private Participant(MerchantId merchantId, Quantity quantity)
     {
+        if (merchantId == default)
+        {
+            throw new ArgumentException($"{nameof(merchantId)} should not be the default value.", nameof(merchantId));
+        }
+
+        if (quantity == default)
+        {
+            throw new ArgumentException($"{nameof(quantity)} should not be the default value.", nameof(quantity));
+        }
+        
         MerchantId = merchantId;
         Quantity = quantity;
     }

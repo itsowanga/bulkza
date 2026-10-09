@@ -8,12 +8,12 @@ public readonly record struct Money
     {
         if (amount < 0)
         {
-            throw new ArgumentException("Amount must be greater or equal to zero.");
+            throw new ArgumentException($"{nameof(amount)} must be greater or equal to zero.", nameof(amount));
         }
 
         if (Math.Round(amount, 2) != amount)
         {
-            throw new ArgumentException("Amount should not be more than two decimal places.");
+            throw new ArgumentException($"{nameof(amount)} should not be more than two decimal places.", nameof(amount));
 
         }
 

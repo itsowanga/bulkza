@@ -8,6 +8,9 @@ public readonly record struct PhoneNumber
 
     private PhoneNumber(string value)
     {
+
+        ArgumentNullException.ThrowIfNull(value);
+        
         var phoneUtil = PhoneNumberUtil.GetInstance();
 
         LibPhoneNumber parsed;
@@ -32,6 +35,6 @@ public readonly record struct PhoneNumber
     } 
     public static PhoneNumber Create(string value) => new(value);
 
-    public override string? ToString() => Value;
+    public override string ToString() => Value;
 
 }

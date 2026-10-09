@@ -7,7 +7,7 @@ public readonly record struct MerchantId
     {
         if (value == Guid.Empty)
         {
-            throw new ArgumentException("MerchantId cannot be empty");
+            throw new ArgumentException($"{nameof(value)} cannot be empty", nameof(value));
         }
             Value = value;
     }
