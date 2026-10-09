@@ -27,12 +27,27 @@ public class Merchant
     {
         if (!Enum.IsDefined(status))
         {
-            throw new ArgumentException("Invalid merchant status.");
+            throw new ArgumentException("Invalid merchant status.", nameof(status));
         }
 
         if (!Enum.IsDefined(role))
         {
-            throw new ArgumentException("Invalid merchant role.");
+            throw new ArgumentException("Invalid merchant role.", nameof(role));
+        }
+
+        if (address == default)
+        {
+            throw new ArgumentException($"{nameof(address)} cannot be the default value.", nameof(address));
+        }
+
+        if (id == default)
+        {
+            throw new ArgumentException($"{nameof(id)} cannot be the default value.", nameof(id));
+        }
+
+        if (phoneNumber == default)
+        {
+            throw new ArgumentException($"{nameof(phoneNumber)} cannot be the default value.", nameof(phoneNumber));
         }
 
         NameValidation(name, 100);
@@ -52,29 +67,29 @@ public class Merchant
      
         if (string.IsNullOrWhiteSpace(name))
         {
-            throw new ArgumentException("Name should not be blank.");
+            throw new ArgumentException($"{nameof(name)} should not be blank.", nameof(name));
         }
 
         if (name.Length > maxLength)
         {
-            throw new ArgumentException($"Name should not exceed {maxLength} characters.");
+            throw new ArgumentException($"{nameof(name)} should not exceed {maxLength} characters.", nameof(name));
 
         }
     }
     private static void DateValidation(DateTimeOffset registrationDate)
     {
-        if (registrationDate.CompareTo(DateTimeOffset.MinValue) == 0)
+        if (registrationDate == default)
         {
-            throw new ArgumentException("Registration date is missing.");
+            throw new ArgumentException($"{nameof(registrationDate)} is missing.", nameof(registrationDate));
         }
 
         if(registrationDate.CompareTo(DateTimeOffset.UtcNow) == 1)
         {
-            throw new ArgumentException("Registration date should not be in the future.");
+            throw new ArgumentException($"{nameof(registrationDate)} should not be in the future.", nameof(registrationDate));
         }
     }
 
-    public void updateName(string name)
+    public void UpdateName(string name)
     {
         NameValidation(name, 100);
         Name = name;
@@ -84,7 +99,7 @@ public class Merchant
     {
         if (phoneNumber.Equals(default(PhoneNumber)))
         {
-            throw new ArgumentException($"{nameof(phoneNumber)} cannot contain a default phone number.");
+            throw new ArgumentException($"{nameof(phoneNumber)} cannot contain a default phone number.", nameof(phoneNumber));
         }  
 
         PhoneNumber = phoneNumber;
@@ -94,7 +109,7 @@ public class Merchant
     {
         if (address.Equals(default(Address)))
         {
-            throw new ArgumentException($"{nameof(address)} cannot contain a default address.");
+            throw new ArgumentException($"{nameof(address)} cannot contain a default address.", nameof(address));
         }  
 
         Address = address;
@@ -104,7 +119,7 @@ public class Merchant
     {
         if(!Enum.IsDefined(status))
         {
-            throw new ArgumentException($"{nameof(status)} is invalid.");
+            throw new ArgumentException($"{nameof(status)} is invalid.", nameof(status));
         }
 
         Status = status;

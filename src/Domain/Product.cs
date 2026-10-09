@@ -24,15 +24,20 @@ public class Product
                     Money basePrice,
                     bool isActive)
     {
-        
+
+        if (productId == default)
+        {
+            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+        }   
+
         if (!Enum.IsDefined(productCategory))
         {
-            throw new ArgumentException("Invalid Product Category.");
+            throw new ArgumentException($"{nameof(productCategory)} is invalid.", nameof(productCategory));
         }
 
         if (!Enum.IsDefined(unitOfMeasure))
         {
-            throw new ArgumentException("Invalid Unit of Measure.");
+            throw new ArgumentException($"{nameof(unitOfMeasure)} is invalid.", nameof(unitOfMeasure));
         }
 
         ValidateOptional(description);
@@ -55,7 +60,7 @@ public class Product
         {
             if (description.Length > maxLength)
             {
-                throw new ArgumentException($"Description cannot exceed {maxLength} characters.");
+                throw new ArgumentException($"{nameof(description)} cannot exceed {maxLength} characters.", nameof(description));
 
             }
         }
@@ -65,11 +70,11 @@ public class Product
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new ArgumentException($"{name} is required.");
+            throw new ArgumentException($"{name} is required.", nameof(value));
         }
         if (value.Length > maxLength)
         {
-            throw new ArgumentException($"{name} cannot exceed {maxLength} characters.");
+            throw new ArgumentException($"{name} cannot exceed {maxLength} characters.", nameof(value));
     
         }
     }
@@ -84,7 +89,7 @@ public class Product
     {
         if (!Enum.IsDefined(category))
         {
-            throw new ArgumentException($"{nameof(category)} is invalid.");
+            throw new ArgumentException($"{nameof(category)} is invalid.", nameof(category));
         }
 
         Category = category;
@@ -94,7 +99,7 @@ public class Product
     {
        if (!Enum.IsDefined(unitOfMeasure))
         {
-            throw new ArgumentException($"{nameof(unitOfMeasure)} is invalid.");
+            throw new ArgumentException($"{nameof(unitOfMeasure)} is invalid.", nameof(unitOfMeasure));
         }
 
         UnitOfMeasure = unitOfMeasure; 
@@ -104,7 +109,7 @@ public class Product
     {
         if (basePrice == default)
         {
-            throw new ArgumentException($"{nameof(basePrice)} cannot contain the default value.");
+            throw new ArgumentException($"{nameof(basePrice)} cannot contain the default value.", nameof(basePrice));
         }
 
         BasePrice = basePrice; 

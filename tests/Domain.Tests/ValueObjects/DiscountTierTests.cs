@@ -17,7 +17,7 @@ public class DiscountTierTests
 
     [Fact]
     public void
-    Constructor_WhenQuantityIsTheDefaultValue_ShouldThrowArgumentException()
+    Constructor_WhenQuantityIsTheDefault_ShouldThrowArgumentException()
     {
         Action act = () => DiscountTier.Create(default(Quantity), 95m);
         act.Should().Throw<ArgumentException>();

@@ -7,7 +7,7 @@ public class OrderLineTests
 {
     [Fact]
     public void
-    Constructor_WhenProductIdIsTheDefaultValue_ShouldThrowArgumentException()
+    Constructor_WhenProductIdIsTheDefault_ShouldThrowArgumentException()
     {
         Action act = () =>  OrderLine.Create(default(ProductId), Quantity.Create(5), Money.Create(5m));
         act.Should().Throw<ArgumentException>();   
@@ -15,7 +15,7 @@ public class OrderLineTests
 
     [Fact]
     public void
-    Constructor_WhenQuantityIsTheDefaultValue_ShouldThrowArgumentException()
+    Constructor_WhenQuantityIsTheDefault_ShouldThrowArgumentException()
     {
         Action act = () =>  OrderLine.Create(ProductId.New(), default(Quantity), Money.Create(5m));
         act.Should().Throw<ArgumentException>();   
