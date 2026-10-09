@@ -30,7 +30,7 @@ public class AddressTests
     public void 
     Constructor_WhenSurburbIsEmpty_ShouldNotThrowArgumentException()
     {
-        Action act = () => Address.Create("45 Matlala Rd", "", "Benoni", "Gauteng", "1234", "Zimbabwe");
+        Action act = () => Address.Create("45 Matlala Rd", "Benoni", "Gauteng", "1234", "Zimbabwe", "");
         act.Should().NotThrow<ArgumentException>();
     }
 
@@ -38,8 +38,8 @@ public class AddressTests
     public void
     Constructor_WhenEqualAddressesAreCompared_ShouldBeEqual()
     {
-        Address a1 =  Address.Create("45 Matlala Rd", "", "Benoni", "Gauteng", "1234", "Zimbabwe");
-        Address a2 =  Address.Create("45 Matlala Rd", "", "Benoni", "Gauteng", "1234", "Zimbabwe");
+        Address a1 =  Address.Create("45 Matlala Rd", "Benoni", "Gauteng", "1234", "Zimbabwe", "");
+        Address a2 =  Address.Create("45 Matlala Rd", "Benoni", "Gauteng", "1234", "Zimbabwe", "");
         a1.Should().Be(a2);
     }
 }

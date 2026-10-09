@@ -13,8 +13,8 @@ public class BulkPool
     public int MinimumMerchants {get; private set;}
     public DateTimeOffset Deadline {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    private List<Participant> _participants;
-    private List<IDomainEvent> _domainEvents;
+    private readonly List<Participant> _participants;
+    private readonly List<IDomainEvent> _domainEvents;
     public BulkPool( PoolId poolId,
                      ProductId productId,
                      Quantity minimumQuantity,
@@ -24,42 +24,48 @@ public class BulkPool
     {
         if (poolId == default)
         {
-            throw new ArgumentException($"{nameof(poolId)} cannot be the default value.");
+            throw new ArgumentException($"{nameof(poolId)} cannot be the default value.", nameof(poolId));
         }
 
         if (productId == default)
         {
-            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+            throw new ArgumentException($"{nameof(productId)} cannot be the default value.", nameof(productId));
         }
+
+        if (minimumQuantity == default)
+        {
+            throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.", nameof(minimumQuantity));
+        }
+        
+        CreatedAt = DateTimeOffset.UtcNow;
+        ValidateDeadline(deadline);
+        ValidateMerchants(minimumMerchants);
         PoolId = poolId;
         ProductId = productId;        
         MinimumQuantity = minimumQuantity;
         MinimumMerchants = minimumMerchants;
         Deadline = deadline;
-        CreatedAt = DateTimeOffset.UtcNow;
-        _participants = new List<Participant>();
+        _participants = [];
         CurrentQuantity = 0;
         Status = BulkPoolStatus.Open;
-        ValidateDeadline(deadline);
-        ValidateMerchants(minimumMerchants);
         _domainEvents = [];
         
     }
 
-    private void ValidateDeadline(DateTimeOffset date)
+    private void ValidateDeadline(DateTimeOffset deadline)
     {
-        if (date <= CreatedAt)
+        if (deadline <= CreatedAt)
         {
-            throw new ArgumentException("Deadline must be into the future.");
+            throw new ArgumentException($"{nameof(deadline)} must be into the future.", nameof(deadline));
         }
 
     }
 
-    private void ValidateMerchants(int minimumMerchants)
+    private static void ValidateMerchants(int minimumMerchants)
     {
         if (minimumMerchants < 1)
         {
-            throw new ArgumentException("Minimum number of merchants should be at least one.");
+            throw new ArgumentException($"{nameof(minimumMerchants)} number of merchants should be at least one.", nameof(minimumMerchants));
         }
     }
 
@@ -71,12 +77,12 @@ public class BulkPool
     {
         if (Status != BulkPoolStatus.Open)
         {
-            throw new InvalidOperationException("Pool is not open for joining.");
+            throw new InvalidOperationException($"{nameof(Status)} is not open.");
         }
 
         if (Deadline <= DateTimeOffset.UtcNow)
         {
-            throw new InvalidOperationException("Pool's deadline has passed.");
+            throw new InvalidOperationException($"{nameof(Deadline)} has passed.");
         }
 
     
@@ -84,7 +90,7 @@ public class BulkPool
         {
             if(participant.MerchantId == merchantId)
             {
-                throw new InvalidOperationException("Participant has already joined the pool.");
+                throw new InvalidOperationException($"{nameof(participant)} has already joined the pool.");
             }
         }
 

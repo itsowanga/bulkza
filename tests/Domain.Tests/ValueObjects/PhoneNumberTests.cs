@@ -30,7 +30,7 @@ public class PhoneNumberTests
     }
 
     [Theory]
-    [InlineData("0835851808", "+27385851808")]
+    [InlineData("0835851808", "+27835851808")]
     public void
     Constructor_WhenPhoneNumberGetConvertedE164_ShouldBeEqual(string inputNumber, string convertedNumber)
     {

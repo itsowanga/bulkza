@@ -51,5 +51,5 @@ public class MerchantBuilder
         return this;
     }
 
-    public Merchant Build() => new Merchant(_id, _name, _status, _role, _address, _phoneNumber,_registrationDate);
+    public Merchant Build() => new(_id, _name, _status, _role, _address, _phoneNumber,_registrationDate);
 }
