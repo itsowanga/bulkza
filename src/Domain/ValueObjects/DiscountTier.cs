@@ -1,7 +1,7 @@
 namespace Domain.ValueObjects;
 public readonly record struct DiscountTier
 {
-    public Quantity MimimumQuantity {get;}
+    public Quantity MinimumQuantity {get;}
     public decimal DiscountPercentage {get;}
 
     private DiscountTier(Quantity minimumQuantity, decimal discountPercentage)
@@ -17,7 +17,7 @@ public readonly record struct DiscountTier
             throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.");
         }
 
-        MimimumQuantity = minimumQuantity;
+        MinimumQuantity = minimumQuantity;
         DiscountPercentage = discountPercentage;
     }
 

@@ -1,5 +1,5 @@
 using Domain.ValueObjects;
-
+namespace Domain.ValueObjects;
 public readonly record struct OrderLine
 {
     public ProductId ProductId {get;}

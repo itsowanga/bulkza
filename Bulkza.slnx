@@ -5,4 +5,10 @@
     <Project Path="src/Api/Api.csproj" />
     <Project Path="src/Application/Application.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Domain.Tests/Domain.Tests.csproj" />
+    <Project Path="tests/Api.Tests/Api.Tests.csproj" />
+    <Project Path="tests/Application.Tests/Application.Tests.csproj" />
+    <Project Path="tests/Integration.Tests/Integration.Tests.csproj" />
+  </Folder>
 </Solution>

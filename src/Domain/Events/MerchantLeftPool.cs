@@ -1,3 +1,5 @@
+using Domain.ValueObjects;
+
 namespace Domain.Events;
 public record MerchantLeftPool(
     EventId EventId,

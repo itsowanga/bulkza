@@ -15,8 +15,6 @@ public class Merchant
     public PhoneNumber PhoneNumber {get; private set;}
     public DateTimeOffset RegistrationDate {get; private set;}
 
-    private Merchant() {}
-
     public Merchant(
         MerchantId id, 
         string name,

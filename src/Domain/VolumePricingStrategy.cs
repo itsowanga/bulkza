@@ -3,7 +3,7 @@ using Domain.ValueObjects;
 namespace Domain;
 public class VolumePricingStrategy : IPricingStrategy
 {
-    private IReadOnlyList<DiscountTier> _tiers;
+    private readonly IReadOnlyList<DiscountTier> _tiers;
 
     public VolumePricingStrategy(IEnumerable<DiscountTier> tiers)
     {
@@ -28,7 +28,6 @@ public class VolumePricingStrategy : IPricingStrategy
             }
         }
 
-        
         decimal newBasePrice = basePrice.Amount * ((100m - highestDiscount)/100);
         return Money.Create(newBasePrice);
     }

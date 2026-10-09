@@ -42,7 +42,7 @@ public class BulkPool
         Status = BulkPoolStatus.Open;
         ValidateDeadline(deadline);
         ValidateMerchants(minimumMerchants);
-        _domainEvents = new List<IDomainEvent>();
+        _domainEvents = [];
         
     }
 
@@ -149,7 +149,7 @@ public class BulkPool
 
     }
 
-    public void Finalize()
+    public void Finalise()
     {
         if (Status != BulkPoolStatus.Locked)
         {

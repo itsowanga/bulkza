@@ -49,7 +49,7 @@ public class Product
         Description = description;
     }
 
-    private void ValidateOptional(string? description, int maxLength=500)
+    private static void ValidateOptional(string? description, int maxLength=500)
     {
         if (!string.IsNullOrWhiteSpace(description))
         {
@@ -61,7 +61,7 @@ public class Product
         }
     }
 
-    private void ValidateRequired(string value, string name, int maxLength)
+    private static void ValidateRequired(string value, string name, int maxLength)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -102,7 +102,7 @@ public class Product
 
     public void UpdateBasePrice(Money basePrice)
     {
-        if (basePrice = default)
+        if (basePrice == default)
         {
             throw new ArgumentException($"{nameof(basePrice)} cannot contain the default value.");
         }
