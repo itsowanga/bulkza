@@ -72,10 +72,10 @@ Domain
 
 ## Core patterns
 
-- **Transactional Outbox** — domain events written atomically with business data, then published to Service Bus by a background publisher.
-- **Idempotent consumers** — duplicate Service Bus messages are ignored via a `ProcessedMessage` table.
-- **Optimistic concurrency** — `rowversion` on `BulkPool` prevents race conditions during concurrent joins.
-- **State machine** — `Draft → Open → ThresholdMet → Locked → Finalized`, with `Expired` and `Cancelled` as terminal alternatives.
+- **Transactional Outbox**: domain events written atomically with business data, then published to Service Bus by a background publisher.
+- **Idempotent consumers**: duplicate Service Bus messages are ignored via a `ProcessedMessage` table.
+- **Optimistic concurrency**: `rowversion` on `BulkPool` prevents race conditions during concurrent joins.
+- **State machine**: `Draft → Open → ThresholdMet → Locked → Finalized`, with `Expired` and `Cancelled` as terminal alternatives.
 
 ---
 
@@ -312,7 +312,7 @@ Integration tests use Testcontainers and start their own SQL Server instance.
 
 Loaded from `appsettings.json`, environment variables, and (locally) user secrets.
 
-Required settings — never commit real values:
+Required settings (never commit real values):
 
 ```
 ConnectionStrings:SqlServer
@@ -326,12 +326,12 @@ Jwt:SigningKey
 
 ## Testing
 
-- **Unit tests** — value objects, entities, aggregates, state machine, pricing.
-- **Integration tests** — API endpoints, auth, persistence, transactions, concurrency, outbox, message processing.
-- **Test builders** — `MerchantBuilder`, `ProductBuilder`, `PoolBuilder`, `OrderBuilder`.
-- **Testcontainers** — real SQL Server instance per test run.
-- **Concurrency test** — simultaneous pool joins, verify final quantity and no duplicates.
-- **Messaging tests** — success, duplicate, retry, failure, dead-letter.
+- **Unit tests**: value objects, entities, aggregates, state machine, pricing.
+- **Integration tests**: API endpoints, auth, persistence, transactions, concurrency, outbox, message processing.
+- **Test builders**: `MerchantBuilder`, `ProductBuilder`, `PoolBuilder`, `OrderBuilder`.
+- **Testcontainers**: real SQL Server instance per test run.
+- **Concurrency test**: simultaneous pool joins, verify final quantity and no duplicates.
+- **Messaging tests**: success, duplicate, retry, failure, dead-letter.
 
 ---
 
@@ -357,7 +357,7 @@ Infrastructure provisioned with **Terraform**:
 - Azure Service Bus
 - Supporting resources (Key Vault, Application Insights)
 
-Secrets are never hard-coded — use Key Vault and managed identity.
+Secrets are never hard-coded. Use Key Vault and managed identity.
 
 ---
 
