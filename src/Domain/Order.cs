@@ -31,17 +31,14 @@ public class Order
 
         CreatedAt = DateTimeOffset.UtcNow;
 
-        if (orderLines is null)
-        {
-            throw new ArgumentNullException(nameof(orderLines));
-        }
+        ArgumentNullException.ThrowIfNull(orderLines);
 
         if (orderLines.Count == 0)
         {
             throw new ArgumentException($"{nameof(orderLines)} must have at least one line.");
         }
 
-        _orderLines = new List<OrderLine>(orderLines);
+        _orderLines = [.. orderLines];
         TotalAmount = Money.Create(_orderLines.Sum(l => l.UnitPrice.Amount * l.Quantity.Value));
     }
 
