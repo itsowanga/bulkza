@@ -7,11 +7,7 @@ public class VolumePricingStrategy : IPricingStrategy
 
     public VolumePricingStrategy(IEnumerable<DiscountTier> tiers)
     {
-        if (tiers is null)
-        {
-            throw new ArgumentNullException(nameof(tiers));
-        }
-
+        ArgumentNullException.ThrowIfNull(tiers);
         _tiers = tiers.ToList().AsReadOnly();
     }
 

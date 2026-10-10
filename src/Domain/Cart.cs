@@ -24,7 +24,7 @@ public class Cart
 
         CartId = cartId;
         MerchantId = merchantId;
-        _cartItems = new List<CartItem>();
+        _cartItems = [];
     }
 
     public IReadOnlyList<CartItem> CartItems => _cartItems;
