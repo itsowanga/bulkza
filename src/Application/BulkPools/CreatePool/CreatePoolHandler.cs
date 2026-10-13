@@ -3,7 +3,7 @@ using Domain;
 
 namespace Application.BulkPools.CreatePool;
 
-public class JoinPoolHandler (IBulkPoolRepository bulkPool, IUnitOfWork uow)
+public class CreatePoolHandler (IBulkPoolRepository bulkPool, IUnitOfWork uow)
 
 {
     private readonly IBulkPoolRepository _bulkPool = bulkPool;
