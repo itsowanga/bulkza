@@ -79,7 +79,7 @@ public class Product
         }
     }
 
-    public void UpdateDescription(string description)
+    public void UpdateDescription(string? description)
     {
         ValidateOptional(description);
         Description = description;
