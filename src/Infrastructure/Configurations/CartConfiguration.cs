@@ -12,8 +12,9 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
     {
         builder.ToTable("Carts");
         builder.HasKey(cart => cart.CartId);
-        builder.Property(cart => cart.CartId).HasConversion(id => id.Value, value => CartId.Create(value));
-        builder.HasOne<Merchant>().WithMany().HasForeignKey(cart => cart.CartId).HasPrincipalKey(merchant => merchant.Id);
+        builder.Property(cart => cart.CartId).HasConversion(id => id.Value, value => CartId.Create(value)).IsRequired();
+        builder.HasOne<Merchant>().WithMany().HasForeignKey(cart => cart.MerchantId).HasForeignKey(cart => cart.MerchantId);
+        builder.Property(cart => cart.MerchantId).HasConversion(merchantId => merchantId.Value, value => MerchantId.Create(value)).IsRequired();
         builder.ComplexCollection(cart => cart.CartItems, cartBuilder =>
         {
             cartBuilder.Property(line => line.ProductId).HasConversion(pid => pid.Value, value => ProductId.Create(value)).IsRequired();

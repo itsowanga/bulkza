@@ -13,9 +13,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
         builder.ToTable("Products");
         builder.HasKey(product => product.ProductId);
-        builder.Property(product => product.ProductId).HasConversion(id => id.Value, value => ProductId.Create(value));
-        builder.Property(product => product.SKU).HasMaxLength(50).IsRequired();
+        builder.Property(product => product.ProductId).HasConversion(id => id.Value, value => ProductId.Create(value)).IsRequired();
         builder.HasIndex(product => product.SKU).IsUnique();
+        builder.Property(product => product.SKU).HasMaxLength(50).IsRequired();
         builder.Property(product => product.Name).HasMaxLength(100).IsRequired();
         builder.Property(product => product.Description).HasMaxLength(500);
         builder.Property(product => product.Category).HasConversion<string>().IsRequired();
