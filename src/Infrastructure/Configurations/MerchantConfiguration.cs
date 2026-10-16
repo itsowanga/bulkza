@@ -15,8 +15,8 @@ public class MerchantConfiguration : IEntityTypeConfiguration<Merchant>
         builder.HasKey(merchant => merchant.Id);
         builder.Property(merchant => merchant.Id).HasConversion(Id => Id.Value, value => MerchantId.Create(value)).IsRequired();
         builder.Property(merchant => merchant.Name).HasMaxLength(100).IsRequired();
-        builder.Property(merchant => merchant.Status).HasConversion<string>().IsRequired();
-        builder.Property(merchant => merchant.Role).HasConversion<string>().IsRequired();
+        builder.Property(merchant => merchant.Status).HasConversion<string>().HasMaxLength(10).IsRequired();
+        builder.Property(merchant => merchant.Role).HasConversion<string>().HasMaxLength(11).IsRequired();
         builder.Property(merchant => merchant.RegistrationDate).IsRequired();
         builder.HasIndex(merchant => merchant.PhoneNumber).IsUnique();
         builder.Property(merchant => merchant.PhoneNumber).HasConversion(pnumber => pnumber.Value, value => PhoneNumber.Create(value)).HasMaxLength(16).IsRequired();

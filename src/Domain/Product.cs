@@ -16,10 +16,10 @@ public class Product
 
 
     public Product( ProductId productId,
-                    string sku,
+                    string SKU,
                     string name,
                     string? description,
-                    ProductCategory productCategory,
+                    ProductCategory category,
                     UnitOfMeasure unitOfMeasure,
                     Money basePrice,
                     bool isActive)
@@ -30,9 +30,9 @@ public class Product
             throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
         }   
 
-        if (!Enum.IsDefined(productCategory))
+        if (!Enum.IsDefined(category))
         {
-            throw new ArgumentException($"{nameof(productCategory)} is invalid.", nameof(productCategory));
+            throw new ArgumentException($"{nameof(category)} is invalid.", nameof(Category));
         }
 
         if (!Enum.IsDefined(unitOfMeasure))
@@ -41,15 +41,15 @@ public class Product
         }
 
         ValidateOptional(description);
-        ValidateRequired(sku, "SKU", 50);
+        ValidateRequired(SKU, "SKU", 50);
         ValidateRequired(name, "Name", 100);
         
         ProductId = productId;
-        Category = productCategory;
+        Category = category;
         UnitOfMeasure = unitOfMeasure;
         BasePrice = basePrice;
         IsActive = isActive;
-        SKU = sku;
+        this.SKU = SKU;
         Name = name;
         Description = description;
     }
