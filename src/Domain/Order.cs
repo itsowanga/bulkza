@@ -44,7 +44,7 @@ public class Order
     }
 
     public IReadOnlyList<OrderLine> OrderLines => _orderLines;
-    public void MarkAsPaid(Guid transactionId)
+    public void MarkAsPaid(Guid? transactionId)
     {
         if (Status != OrderStatus.Pending)
         {
