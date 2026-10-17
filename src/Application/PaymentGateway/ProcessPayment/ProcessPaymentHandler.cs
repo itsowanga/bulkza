@@ -2,7 +2,7 @@ using Application.Interfaces;
 using Application.ValueObjects;
 using Domain;
 
-namespace Application.PaymentGateway;
+namespace Application.PaymentGateway.ProcessPayment;
 
 public class ProcessPaymentHandler(IPaymentGateway payment, IOrderRepository order, IUnitOfWork uow)
 {
@@ -18,9 +18,9 @@ public class ProcessPaymentHandler(IPaymentGateway payment, IOrderRepository ord
         {
             order_.MarkAsPaid(paymentResult.TransactionId);
             _order.Update(order_);
-            
+            await _uow.SaveChangesAsync(ct);
         }
-        await _uow.SaveChangesAsync(ct);
-        return new(order_.Status, order_.TransactionId);
+        
+        return new(order_.Status, order_.PaymentId);
     }
 }

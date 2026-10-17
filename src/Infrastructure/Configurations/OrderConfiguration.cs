@@ -22,7 +22,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(order => order.Status).HasConversion<string>().HasMaxLength(10).IsRequired();
         builder.Property(order => order.CreatedAt).IsRequired();
         builder.Property(order => order.TotalAmount).HasConversion(money => money.Amount, value => Money.Create(value)).HasPrecision(18, 2).IsRequired();
-        builder.Property(order => order.TransactionId);
+        builder.Property(order => order.PaymentId);
+        builder.Property(order => order.RefundId);
         var jsonOptions = new JsonSerializerOptions();
         jsonOptions.Converters.Add(new OrderLineJsonConverter());
 

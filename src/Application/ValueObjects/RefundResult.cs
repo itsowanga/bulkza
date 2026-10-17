@@ -13,7 +13,7 @@ public readonly record struct RefundResult
         TransactionId = transactionId;
     }
 
-    public static RefundResult Succeeded(Guid transactionId) => new(true, transactionId);
+    public static RefundResult Succeeded(Guid? transactionId) => new(true, transactionId);
     public static RefundResult Failed(string errorMessage) => new(false, errorMessage:errorMessage);
     public override string ToString() => $"{(Success ? "Succeeded" : "Failed")}: {TransactionId?.ToString() ?? ErrorMessage}";
     

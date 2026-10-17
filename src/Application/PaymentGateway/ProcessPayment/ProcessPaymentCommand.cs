@@ -1,6 +1,6 @@
 using Domain;
 using Domain.ValueObjects;
 
-namespace Application.PaymentGateway;
+namespace Application.PaymentGateway.ProcessPayment;
 
 public record ProcessPaymentCommand(OrderId OrderId, string cardToken);

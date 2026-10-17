@@ -1,5 +1,5 @@
 using Domain.Enums;
 
-namespace Application.PaymentGateway;
+namespace Application.PaymentGateway.ProcessPayment;
 
 public record ProcessPaymentResult(OrderStatus OrderStatus, Guid? TransactionId);

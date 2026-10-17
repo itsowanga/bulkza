@@ -9,7 +9,8 @@ public class Order
     public OrderStatus Status {get; private set;}
     public Money TotalAmount {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    public Guid? TransactionId {get; private set;}
+    public Guid? PaymentId {get; private set;}
+    public Guid? RefundId {get; private set;}
     private List<OrderLine> _orderLines;
 
     public Order( OrderId orderId,
@@ -30,7 +31,8 @@ public class Order
         MerchantId = merchantId;
         Status = OrderStatus.Pending;
         CreatedAt = DateTimeOffset.UtcNow;
-        TransactionId = null;
+        PaymentId = null;
+        RefundId = null;
 
         ArgumentNullException.ThrowIfNull(orderLines);
 
@@ -44,20 +46,20 @@ public class Order
     }
 
     public IReadOnlyList<OrderLine> OrderLines => _orderLines;
-    public void MarkAsPaid(Guid? transactionId)
+    public void MarkAsPaid(Guid? paymentId)
     {
         if (Status != OrderStatus.Pending)
         {
             throw new InvalidOperationException($"{nameof(Status)} should be pending.");
         }
 
-        if (transactionId == Guid.Empty)
+        if (paymentId == default)
         {
-            throw new ArgumentException($"{nameof(transactionId)} cannot be empty when order is paid", nameof(transactionId));
+            throw new ArgumentException($"{nameof(paymentId)} cannot be empty when order is paid", nameof(paymentId));
         }
 
         Status = OrderStatus.Paid;
-        TransactionId = transactionId;
+        PaymentId = paymentId;
     }
 
     public void MarkAsShipped()
@@ -80,14 +82,20 @@ public class Order
         Status = OrderStatus.Delivered;     
     }
 
-    public void Cancel()
+    public void Cancel(Guid? refundId)
     {
         if(Status != OrderStatus.Pending && Status != OrderStatus.Paid)
         {
             throw new InvalidOperationException($"Order cannot be cancelled.");
         }
 
+        if(refundId == default)
+        {
+            throw new ArgumentException($"{nameof(refundId)} cannot be empty when order is cancelled.", nameof(refundId));
+        }
+
         Status = OrderStatus.Cancelled;
+        RefundId = refundId;
     }
 
 
