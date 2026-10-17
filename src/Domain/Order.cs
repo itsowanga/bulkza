@@ -44,15 +44,20 @@ public class Order
     }
 
     public IReadOnlyList<OrderLine> OrderLines => _orderLines;
-    public void MarkAsPaid()
+    public void MarkAsPaid(Guid transactionId)
     {
         if (Status != OrderStatus.Pending)
         {
             throw new InvalidOperationException($"{nameof(Status)} should be pending.");
         }
 
+        if (transactionId == Guid.Empty)
+        {
+            throw new ArgumentException($"{nameof(transactionId)} cannot be empty when order is paid", nameof(transactionId));
+        }
+
         Status = OrderStatus.Paid;
-        TransactionId = Guid.NewGuid();
+        TransactionId = transactionId;
     }
 
     public void MarkAsShipped()

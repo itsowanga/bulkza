@@ -54,8 +54,8 @@ public class OrderTests
     Constructor_WhenMarkAsPaidAndOrderIsNotPending_ShouldThrowInvalidOperationException()
     {
         var o = new OrderBuilder().Build();
-        o.MarkAsPaid();
-        Action act = () => o.MarkAsPaid();
+        o.MarkAsPaid(Guid.NewGuid());
+        Action act = () => o.MarkAsPaid(Guid.NewGuid());
         act.Should().Throw<InvalidOperationException>();
     }  
 
@@ -82,7 +82,7 @@ public class OrderTests
     Method_WhenCancelledAndOrderNotPendingAndNotPaid_ShouldThrowInvalidOperationException()
     {
         var o = new OrderBuilder().Build();
-        o.MarkAsPaid();
+        o.MarkAsPaid(Guid.NewGuid());
         o.MarkAsShipped();
         Action act = () => o.Cancel();
         act.Should().Throw<InvalidOperationException>();
@@ -93,7 +93,7 @@ public class OrderTests
     Method_WhenOrderIsPaid_ShouldUpdateTheTransactionId()
     {
         var o = new OrderBuilder().Build();
-        o.MarkAsPaid();
+        o.MarkAsPaid(Guid.NewGuid());
         o.TransactionId.Should().NotBe(Guid.Empty);
     }
 }
