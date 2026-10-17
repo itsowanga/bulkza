@@ -9,6 +9,7 @@ public class Order
     public OrderStatus Status {get; private set;}
     public Money TotalAmount {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
+    public Guid? TransactionId {get; private set;}
     private List<OrderLine> _orderLines;
 
     public Order( OrderId orderId,
@@ -28,8 +29,8 @@ public class Order
         OrderId = orderId;
         MerchantId = merchantId;
         Status = OrderStatus.Pending;
-
         CreatedAt = DateTimeOffset.UtcNow;
+        TransactionId = null;
 
         ArgumentNullException.ThrowIfNull(orderLines);
 
@@ -51,6 +52,7 @@ public class Order
         }
 
         Status = OrderStatus.Paid;
+        TransactionId = Guid.NewGuid();
     }
 
     public void MarkAsShipped()

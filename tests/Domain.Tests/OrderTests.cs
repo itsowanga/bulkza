@@ -87,4 +87,13 @@ public class OrderTests
         Action act = () => o.Cancel();
         act.Should().Throw<InvalidOperationException>();
     }  
+
+    [Fact]
+    public void
+    Method_WhenOrderIsPaid_ShouldUpdateTheTransactionId()
+    {
+        var o = new OrderBuilder().Build();
+        o.MarkAsPaid();
+        o.TransactionId.Should().NotBe(Guid.Empty);
+    }
 }
