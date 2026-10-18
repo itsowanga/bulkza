@@ -3,7 +3,7 @@ using Domain;
 
 namespace Application.Orders.MarkAsShipped;
 
-public class MarkAsPaidHandler(IOrderRepository order, IUnitOfWork uow)
+public class MarkAsShippedHandler(IOrderRepository order, IUnitOfWork uow)
 {
     private readonly IOrderRepository _order = order;
     private readonly IUnitOfWork _uow = uow;
