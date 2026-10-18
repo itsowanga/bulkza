@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Orders.CreateOrder;
 
-public record CreateOrderResult(OrderId OrderId, MerchantId MerchantId, IReadOnlyList<OrderLine> OrderLines, OrderStatus Status);
+public record CreateOrderResult(Guid OrderId, IReadOnlyList<OrderLineDto> OrderLines, OrderStatus Status);

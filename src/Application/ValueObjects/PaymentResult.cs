@@ -2,9 +2,9 @@ namespace Application.ValueObjects;
 public readonly record struct PaymentResult
 {
     public bool Success {get;}
-    public Guid? TransactionId {get;}
+    public Guid TransactionId {get;}
     public string? ErrorMessage {get;}
-    private PaymentResult(bool success, Guid? transactionId, string? errorMessage=null)
+    private PaymentResult(bool success, Guid transactionId, string? errorMessage=null)
     {
         Success = success;
         TransactionId = transactionId;
@@ -12,6 +12,6 @@ public readonly record struct PaymentResult
     }
 
     public static PaymentResult Succeeded(Guid transactionId) => new(true, transactionId);
-    public static PaymentResult Failed(string errorMessage) => new(false, null, errorMessage);
-    public override string ToString() => $"{(Success ? "Succeeded" : "Failed")}: {TransactionId?.ToString() ?? ErrorMessage}";
+    public static PaymentResult Failed(string errorMessage) => new(false, default, errorMessage);
+    public override string ToString() => $"{(Success ? "Succeeded" : "Failed")}: {TransactionId.ToString() ?? ErrorMessage}";
 }

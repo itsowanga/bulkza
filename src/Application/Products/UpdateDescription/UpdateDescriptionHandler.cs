@@ -14,6 +14,6 @@ public class UpdateDescriptionHandler(IProductRepository product, IUnitOfWork uo
         product_.UpdateDescription(cmd.Description);
         _product.Update(product_);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.Description);
+        return new(product_.ProductId.Value, product_.Description);
     } 
 }

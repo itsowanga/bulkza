@@ -14,6 +14,6 @@ public class UpdateUnitOfMeasureHandler(IProductRepository product, IUnitOfWork 
         product_.UpdateUnitOfMeasure(cmd.UnitOfMeasure);
         _product.Update(product_);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.UnitOfMeasure);
+        return new(product_.ProductId.Value, product_.UnitOfMeasure);
     } 
 }

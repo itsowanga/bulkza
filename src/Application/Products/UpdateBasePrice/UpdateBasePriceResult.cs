@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Products.UpdateBasePrice;
 
-public record UpdateBasePriceResult(ProductId ProductId, ProductCategory Category);
+public record UpdateBasePriceResult(Guid ProductId, ProductCategory Category);

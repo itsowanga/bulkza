@@ -4,4 +4,4 @@ using Domain.ValueObjects;
 
 namespace Application.Products.UpdateCategory;
 
-public record UpdateCategoryResult(ProductId ProductId, ProductCategory Category);
+public record UpdateCategoryResult(Guid ProductId, ProductCategory Category);

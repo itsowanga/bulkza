@@ -9,8 +9,8 @@ public class Order
     public OrderStatus Status {get; private set;}
     public Money TotalAmount {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    public Guid? PaymentId {get; private set;}
-    public Guid? RefundId {get; private set;}
+    public Guid PaymentId {get; private set;}
+    public Guid RefundId {get; private set;}
     private List<OrderLine> _orderLines;
 
     public Order( OrderId orderId,
@@ -31,8 +31,8 @@ public class Order
         MerchantId = merchantId;
         Status = OrderStatus.Pending;
         CreatedAt = DateTimeOffset.UtcNow;
-        PaymentId = null;
-        RefundId = null;
+        PaymentId = default;
+        RefundId = default;
 
         ArgumentNullException.ThrowIfNull(orderLines);
 
@@ -46,7 +46,7 @@ public class Order
     }
 
     public IReadOnlyList<OrderLine> OrderLines => _orderLines;
-    public void MarkAsPaid(Guid? paymentId)
+    public void MarkAsPaid(Guid paymentId)
     {
         if (Status != OrderStatus.Pending)
         {
@@ -82,7 +82,7 @@ public class Order
         Status = OrderStatus.Delivered;     
     }
 
-    public void Cancel(Guid? refundId)
+    public void Cancel(Guid refundId)
     {
         if(Status != OrderStatus.Pending && Status != OrderStatus.Paid)
         {

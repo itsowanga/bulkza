@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Products.UpdateDescription;
 
-public record UpdateDescriptionResult(ProductId ProductId, string? Description);
+public record UpdateDescriptionResult(Guid ProductId, string? Description);

@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Orders.MarkAsDelivered;
 
-public record MarkAsDeliveredResult(OrderId OrderId, MerchantId MerchantId, IReadOnlyList<OrderLine> OrderLines, OrderStatus Status);
+public record MarkAsDeliveredResult(Guid OrderId, OrderStatus Status);

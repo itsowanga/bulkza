@@ -2,4 +2,4 @@ using Domain.ValueObjects;
 
 namespace Application.Products.ActivateProduct;
 
-public record ActivateProductResult(ProductId ProductId, bool IsActive);
+public record ActivateProductResult(Guid ProductId, bool IsActive);

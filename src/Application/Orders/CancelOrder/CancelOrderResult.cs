@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Orders.CancelOrder;
 
-public record CancelOrderResult(OrderId OrderId, MerchantId MerchantId, IReadOnlyList<OrderLine> OrderLines, OrderStatus Status);
+public record CancelOrderResult(Guid OrderId, OrderStatus Status, Guid RefundTransactionId);

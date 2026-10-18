@@ -4,4 +4,4 @@ using Domain.ValueObjects;
 
 namespace Application.Products.UpdateUnitOfMeasure;
 
-public record UpdateUnitOfMeasureResult(ProductId ProductId, UnitOfMeasure UnitOfMeasure);
+public record UpdateUnitOfMeasureResult(Guid ProductId, UnitOfMeasure UnitOfMeasure);

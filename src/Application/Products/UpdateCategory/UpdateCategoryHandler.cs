@@ -14,6 +14,6 @@ public class UpdateCategoryHandler(IProductRepository product, IUnitOfWork uow)
         product_.UpdateCategory(cmd.Category);
         _product.Update(product_);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.Category);
+        return new(product_.ProductId.Value, product_.Category);
     } 
 }

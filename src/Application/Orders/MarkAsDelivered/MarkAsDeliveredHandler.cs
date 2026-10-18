@@ -14,6 +14,6 @@ public class MarkAsDeliveredHandler(IOrderRepository order, IUnitOfWork uow)
         order_.MarkAsDelivered();
         _order.Update(order_);
         await _uow.SaveChangesAsync(ct);
-        return new(order_.OrderId, order_.MerchantId, order_.OrderLines, order_.Status);
+        return new(order_.OrderId.Value, order_.Status);
     }
 }

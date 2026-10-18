@@ -14,6 +14,6 @@ public class UpdateBasePriceHandler(IProductRepository product, IUnitOfWork uow)
         product_.UpdateBasePrice(cmd.BasePrice);
         _product.Update(product_);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.Category);
+        return new(product_.ProductId.Value, product_.Category);
     } 
 }

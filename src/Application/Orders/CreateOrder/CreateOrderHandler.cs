@@ -12,7 +12,12 @@ public class CreateOrderHandler(IOrderRepository order, IUnitOfWork uow)
     {
         Order order_ = new(cmd.OrderId, cmd.MerchantId, cmd.OrderLines);
         await _order.AddAsync(order_, ct);
+        var dtos = order_.OrderLines.Select(line => new OrderLineDto(
+                                                    line.ProductId.Value,
+                                                    line.Quantity.Value,
+                                                    line.UnitPrice.Amount
+        )).ToList();
         await _uow.SaveChangesAsync(ct);
-        return new(order_.OrderId, order_.MerchantId, order_.OrderLines, order_.Status);
+        return new(order_.OrderId.Value, dtos, order_.Status);
     }
 }

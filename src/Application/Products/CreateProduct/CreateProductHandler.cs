@@ -14,6 +14,6 @@ public class CreateProductHandler(IProductRepository product, IUnitOfWork uow)
                                cmd.BasePrice, cmd.IsActive);
         await _product.AddAsync(product_, ct);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.Name, product_.SKU);
+        return new(product_.ProductId.Value, product_.Name, product_.SKU);
     } 
 }

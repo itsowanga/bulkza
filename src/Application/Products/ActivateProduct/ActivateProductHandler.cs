@@ -14,6 +14,6 @@ public class ActivateProductHandler(IProductRepository product, IUnitOfWork uow)
         product_.Activate();
         _product.Update(product_);
         await _uow.SaveChangesAsync(ct);
-        return new(product_.ProductId, product_.IsActive);
+        return new(product_.ProductId.Value, product_.IsActive);
     } 
 }
