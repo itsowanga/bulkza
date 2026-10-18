@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Merchants.CreateMerchant;
 
-public record CreateMerchantResult(MerchantId MerchantId, string Name, MerchantStatus Status, DateTimeOffset RegistrationDate);
+public record CreateMerchantResult(Guid MerchantId, string Name, MerchantStatus Status, DateTimeOffset RegistrationDate);

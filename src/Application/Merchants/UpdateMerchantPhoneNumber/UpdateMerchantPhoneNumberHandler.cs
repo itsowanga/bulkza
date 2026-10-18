@@ -14,6 +14,6 @@ public class UpdateMerchantPhoneNumberHandler(IMerchantRepository merchant, IUni
         merchant_.UpdatePhoneNumber(cmd.PhoneNumber);
         _merchant.Update(merchant_);
         await _uow.SaveChangesAsync(ct);
-        return new UpdateMerchantPhoneNumberResult(merchant_.Name, merchant_.PhoneNumber);
+        return new UpdateMerchantPhoneNumberResult(merchant_.Name, merchant_.PhoneNumber.Value);
     }
 }

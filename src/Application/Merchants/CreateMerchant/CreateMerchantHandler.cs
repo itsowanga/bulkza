@@ -14,6 +14,6 @@ public class CreateMerchantHandler (IMerchantRepository merchant, IUnitOfWork uo
         Merchant merchant_ = new(cmd.MerchantId, cmd.Name, cmd.Status, cmd.Role, cmd.Address, cmd.PhoneNumber, cmd.RegistrationDate);
         await _merchant.AddAsync(merchant_, ct);
         await _uow.SaveChangesAsync(ct);
-        return new CreateMerchantResult(cmd.MerchantId, cmd.Name, cmd.Status, cmd.RegistrationDate);
+        return new CreateMerchantResult(cmd.MerchantId.Value, cmd.Name, cmd.Status, cmd.RegistrationDate);
     }
 }

@@ -1,4 +1,4 @@
 using Domain.ValueObjects;
 
 namespace Application.Merchants.UpdateMerchantName;
-public record UpdateMerchantNameResult(MerchantId MerchantId, string Name);
+public record UpdateMerchantNameResult(Guid MerchantId, string Name);

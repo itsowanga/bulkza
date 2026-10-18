@@ -13,6 +13,6 @@ public class UpdateMerchantNameHandler(IMerchantRepository merchant, IUnitOfWork
         merchant_.UpdateName(cmd.Name);
         _merchant.Update(merchant_);
         await _uow.SaveChangesAsync(ct);
-        return new UpdateMerchantNameResult(merchant_.Id, merchant_.Name);
+        return new UpdateMerchantNameResult(merchant_.Id.Value, merchant_.Name);
     }
 }
