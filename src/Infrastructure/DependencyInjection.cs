@@ -22,6 +22,9 @@ public static class DependencyInjection
         // Payment gateway
         services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 
+        // Unit of work
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
         return services;
     }
 }
