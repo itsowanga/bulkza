@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.BulkPools.LockPool;
 
-public record LockPoolResult(PoolId PoolId, BulkPoolStatus Status);
+public record LockPoolResult(Guid PoolId, BulkPoolStatus Status);

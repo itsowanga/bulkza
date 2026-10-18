@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.Carts.RemoveCartItem;
 
-public record RemoveCartItemResult(CartId CartId, MerchantId MerchantId, IReadOnlyList<CartItem> CartItems, int TotalQuantity);
+public record RemoveCartItemResult(Guid CartId, Guid MerchantId, IReadOnlyList<CartItemDto> CartItems, int TotalQuantity);

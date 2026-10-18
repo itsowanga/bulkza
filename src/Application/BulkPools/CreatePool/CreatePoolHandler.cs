@@ -14,6 +14,6 @@ public class CreatePoolHandler (IBulkPoolRepository bulkPool, IUnitOfWork uow)
         BulkPool pool = new(cmd.PoolId, cmd.ProductId, cmd.MinimumQuantity, cmd.MinimumMerchants, cmd.Deadline);
         await _bulkPool.AddAsync(pool, ct);
         await _uow.SaveChangesAsync(ct);
-        return new CreatePoolResult(pool.PoolId, pool.Status, pool.CreatedAt);
+        return new CreatePoolResult(pool.PoolId.Value, pool.Status, pool.CreatedAt);
     }
 }

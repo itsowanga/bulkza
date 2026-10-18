@@ -1,5 +1,3 @@
-using Domain.ValueObjects;
-
 namespace Application.Carts.ClearCart;
 
-public record ClearCartResult(CartId CartId, MerchantId MerchantId, IReadOnlyList<CartItem> CartItems, int TotalQuantity);
+public record ClearCartResult(Guid CartId, Guid MerchantId, IReadOnlyList<CartItemDto> CartItems, int TotalQuantity);

@@ -13,6 +13,6 @@ public class CancelPoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
         pool.Cancel();
         _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
-        return new CancelPoolResult(pool.PoolId, pool.Status);
+        return new CancelPoolResult(pool.PoolId.Value, pool.Status);
     }
 }

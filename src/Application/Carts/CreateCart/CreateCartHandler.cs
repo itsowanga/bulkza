@@ -13,7 +13,8 @@ public class CreateCartHandler(ICartRepository cart, IUnitOfWork uow)
     {
         Cart cart_ = new(cmd.CartId, cmd.MerchantId);
         await _cart.AddAsync(cart_, ct);
+        var dtos = cart_.CartItems.Select(item => new CartItemDto(item.ProductId.Value, item.Quantity.Value)).ToList();
         await _uow.SaveChangesAsync(ct);
-        return new CreateCartResult(cart_.CartId, cart_.MerchantId, cart_.CartItems, cart_.GetTotalQuantity());
+        return new CreateCartResult(cart_.CartId.Value, cart_.MerchantId.Value, dtos, cart_.GetTotalQuantity());
     }
 }

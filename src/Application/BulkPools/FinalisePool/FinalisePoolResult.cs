@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.BulkPools.FinalisePool;
 
-public record FinalisePoolResult(PoolId PoolId, BulkPoolStatus Status);
+public record FinalisePoolResult(Guid PoolId, BulkPoolStatus Status);

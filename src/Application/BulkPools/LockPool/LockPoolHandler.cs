@@ -13,6 +13,6 @@ public class LockPoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
         pool.Lock();
         _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
-        return new LockPoolResult(pool.PoolId, pool.Status);
+        return new LockPoolResult(pool.PoolId.Value, pool.Status);
     }
 }

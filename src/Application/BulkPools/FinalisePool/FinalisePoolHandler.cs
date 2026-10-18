@@ -14,6 +14,6 @@ public class FinalisePoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
         pool.Finalise();
         _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
-        return new FinalisePoolResult(pool.PoolId, pool.Status);
+        return new FinalisePoolResult(pool.PoolId.Value, pool.Status);
     }
 }

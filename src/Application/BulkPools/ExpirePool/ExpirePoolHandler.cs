@@ -15,6 +15,6 @@ public class ExpirePoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
         pool.Expire();
         _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
-        return new ExpirePoolResult(pool.PoolId, pool.Status);
+        return new ExpirePoolResult(pool.PoolId.Value, pool.Status);
     }
 }

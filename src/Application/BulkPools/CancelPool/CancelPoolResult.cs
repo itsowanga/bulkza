@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.BulkPools.CancelPool;
 
-public record CancelPoolResult(PoolId PoolId, BulkPoolStatus Status);
+public record CancelPoolResult(Guid PoolId, BulkPoolStatus Status);
