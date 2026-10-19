@@ -1,19 +1,31 @@
-using Application.Merchants.ChangeMerchantStatus;
-using Application.Merchants.CreateMerchant;
-using Application.Merchants.UpdateMerchantAddress;
-using Application.Merchants.UpdateMerchantName;
-using Application.Merchants.UpdateMerchantPhoneNumber;
+using Application.Merchants.LoginMerchant;
+using Application.Merchants.RegisterMerchant;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("api/merchants")]
-public class MerchantController : ControllerBase
+public class MerchantController (LoginMerchantHandler loginMerchant, RegisterMerchantHandler registerMerchant) : ControllerBase
 {
-    private readonly CreateMerchantHandler _createMerchant;
-    private readonly ChangeMerchantStatusHandler _changeStatus;
-    private readonly UpdateMerchantAddressHandler _updateAddress;
-    private readonly UpdateMerchantNameHandler _updateName;
-    private readonly UpdateMerchantPhoneNumberHandler _updatePhone;
+    private readonly LoginMerchantHandler _loginMerchant = loginMerchant;
+    private readonly RegisterMerchantHandler _registerMerchant = registerMerchant;
+
+    [AllowAnonymous]
+    [HttpPost("register")]
+    public async Task<IActionResult> RegisterMerchant([FromBody] RegisterMerchantCommand command, CancellationToken ct)
+    {
+        var result = await _registerMerchant.Handle(command, ct);
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginMerchant([FromBody] LoginMerchantCommand command, CancellationToken ct)
+    {
+        var result = await _loginMerchant.Handle(command, ct);
+        return Ok(result);
+    }
+
 }
