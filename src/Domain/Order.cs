@@ -9,8 +9,8 @@ public class Order
     public OrderStatus Status {get; private set;}
     public Money TotalAmount {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    public Guid PaymentId {get; private set;}
-    public Guid RefundId {get; private set;}
+    public Guid? PaymentId {get; private set;}
+    public Guid? RefundId {get; private set;}
     private List<OrderLine> _orderLines;
 
     public Order( OrderId orderId,
@@ -31,8 +31,8 @@ public class Order
         MerchantId = merchantId;
         Status = OrderStatus.Pending;
         CreatedAt = DateTimeOffset.UtcNow;
-        PaymentId = default;
-        RefundId = default;
+        PaymentId = null;
+        RefundId = null;
 
         ArgumentNullException.ThrowIfNull(orderLines);
 

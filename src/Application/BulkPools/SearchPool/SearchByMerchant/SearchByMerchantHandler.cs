@@ -11,9 +11,15 @@ public class SearchByMerchantHandler(IBulkPoolRepository pool)
     public async Task<PagedResult<BulkPoolDto>> Handle(SearchByMerchantQuery query, CancellationToken ct)
     {
         var (pools, totalPools) = await _pool.GetByMerchantIdAsync(query.MerchantId, query.Page, query.PageSize, ct);
-        var dtos = pools.Select(pool => new BulkPoolDto(pool.PoolId.Value, pool.ProductId.Value,
-                                             pool.Status, pool.CurrentQuantity, pool.MinimumQuantity.Value, 
-                                             pool.Deadline, pool.CreatedAt)).ToList();
+        var dtos = pools.Select(pool => 
+        {
+            var participant = pool.Participants.FirstOrDefault(p => p.MerchantId == query.MerchantId);
+            var myQuantity = participant != default ? participant.Quantity.Value : 0;
+
+            return new BulkPoolDto(pool.PoolId.Value, pool.ProductId.Value,
+                                             pool.Status, pool.CurrentQuantity, myQuantity, 
+                                             pool.Deadline);
+        }).ToList();
         
         return new(dtos, totalPools, query.Page, query.PageSize);
 

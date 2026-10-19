@@ -5,6 +5,8 @@ using Application.BulkPools.FinalisePool;
 using Application.BulkPools.JoinPool;
 using Application.BulkPools.LeavePool;
 using Application.BulkPools.LockPool;
+using Application.BulkPools.SearchPool.SearchByMerchant;
+using Application.BulkPools.SearchPool.SearchOpenByProductId;
 using Application.Carts.AddCartItem;
 using Application.Carts.ClearCart;
 using Application.Carts.CreateCart;
@@ -43,6 +45,8 @@ public static class DependencyInjection
         services.AddScoped<JoinPoolHandler>();
         services.AddScoped<LeavePoolHandler>();
         services.AddScoped<LockPoolHandler>();
+        services.AddScoped<SearchByMerchantHandler>();
+        services.AddScoped<SearchOpenByProductIdHandler>();
 
         // Cart handlers
         services.AddScoped<AddCartItemHandler>();
