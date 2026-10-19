@@ -5,6 +5,7 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageVersion Include="FluentAssertions" Version="8.11.0" />
     <PackageVersion Include="libphonenumber-csharp" Version="9.0.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />

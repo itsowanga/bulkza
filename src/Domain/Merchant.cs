@@ -13,11 +13,13 @@ public class Merchant
     public MerchantRole Role {get; private set;}
     public Address Address {get; private set;}
     public PhoneNumber PhoneNumber {get; private set;}
+    public PasswordHash PasswordHash {get; private set;}
     public DateTimeOffset RegistrationDate {get; private set;}
 
     public Merchant(
         MerchantId id, 
         string name,
+        PasswordHash passwordHash,
         MerchantStatus status,
         MerchantRole role,
         Address address, 
@@ -49,7 +51,10 @@ public class Merchant
         {
             throw new ArgumentException($"{nameof(phoneNumber)} cannot be the default value.", nameof(phoneNumber));
         }
-
+        if(passwordHash == default)
+        {
+            throw new ArgumentException($"Password cannot be the default value.", nameof(passwordHash));
+        }
         NameValidation(name, 100);
         DateValidation(registrationDate);
 
@@ -60,6 +65,7 @@ public class Merchant
         PhoneNumber = phoneNumber; 
         RegistrationDate = registrationDate;
         Name = name;
+        PasswordHash = passwordHash;
     }
 
     private static void NameValidation(string name, int maxLength)

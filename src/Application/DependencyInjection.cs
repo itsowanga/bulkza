@@ -12,8 +12,9 @@ using Application.Carts.ClearCart;
 using Application.Carts.CreateCart;
 using Application.Carts.RemoveCartItem;
 using Application.Carts.UpdateItemQuantity;
+using Application.Carts.ViewCart;
 using Application.Merchants.ChangeMerchantStatus;
-using Application.Merchants.CreateMerchant;
+using Application.Merchants.RegisterMerchant;
 using Application.Merchants.UpdateMerchantAddress;
 using Application.Merchants.UpdateMerchantName;
 using Application.Merchants.UpdateMerchantPhoneNumber;
@@ -54,10 +55,11 @@ public static class DependencyInjection
         services.AddScoped<CreateCartHandler>();
         services.AddScoped<RemoveCartItemHandler>();
         services.AddScoped<UpdateItemQuantityHandler>();
+        services.AddScoped<ViewCartHandler>();
 
         // Merchant handlers
         services.AddScoped<ChangeMerchantStatusHandler>();
-        services.AddScoped<CreateMerchantHandler>();
+        services.AddScoped<RegisterMerchantHandler>();
         services.AddScoped<UpdateMerchantAddressHandler>();
         services.AddScoped<UpdateMerchantNameHandler>();
         services.AddScoped<UpdateMerchantPhoneNumberHandler>();

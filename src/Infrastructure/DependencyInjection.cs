@@ -19,6 +19,9 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
 
+        // Hashing
+        services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();
+
         // Payment gateway
         services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 

@@ -21,6 +21,7 @@ public class MerchantConfiguration : IEntityTypeConfiguration<Merchant>
         builder.HasIndex(merchant => merchant.PhoneNumber).IsUnique();
         builder.Property(merchant => merchant.PhoneNumber).HasConversion(pnumber => pnumber.Value, value => PhoneNumber.Create(value)).HasMaxLength(16).IsRequired();
         builder.Property(merchant => merchant.Address).HasConversion<AddressJsonConverter>().IsRequired();
+        builder.Property(merchant => merchant.PasswordHash).HasConversion(password => password.Password, value => PasswordHash.Create(value));
 
     }
 }
