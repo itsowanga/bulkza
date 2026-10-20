@@ -1,3 +1,4 @@
+using Api.ExceptionHandling;
 using Application;
 using Application.Interfaces;
 using Infrastructure;
@@ -11,8 +12,11 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.MapControllers();
 app.Run();
