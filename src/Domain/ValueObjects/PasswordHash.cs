@@ -12,9 +12,9 @@ public readonly record struct PasswordHash
             throw new ArgumentException("Please enter a valid password.");
         }
 
-        if(password.Length > 100)
+        if(password.Length > 50)
         {
-            throw new ArgumentException("Password length cannot be greater than 100.");
+            throw new ArgumentException("Password length cannot be greater than 50.");
         }
 
         Password = password;
