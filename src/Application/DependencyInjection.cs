@@ -27,6 +27,9 @@ using Application.PaymentGateway.ProcessPayment;
 using Application.Products.ActivateProduct;
 using Application.Products.CreateProduct;
 using Application.Products.DeactivateProduct;
+using Application.Products.SearchProduct.BrowseActiveProducts;
+using Application.Products.SearchProduct.SearchProductByName;
+using Application.Products.SearchProduct.SearchProductBySku;
 using Application.Products.UpdateBasePrice;
 using Application.Products.UpdateCategory;
 using Application.Products.UpdateDescription;
@@ -84,6 +87,9 @@ public static class DependencyInjection
         services.AddScoped<UpdateCategoryHandler>();
         services.AddScoped<UpdateDescriptionHandler>();
         services.AddScoped<UpdateUnitOfMeasureHandler>();
+        services.AddScoped<BrowseActiveProductsHandler>();
+        services.AddScoped<SearchProductByNameHandler>();
+        services.AddScoped<SearchProductBySkuHandler>();
 
         return services;
     }
