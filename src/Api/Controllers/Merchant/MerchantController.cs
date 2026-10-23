@@ -53,7 +53,7 @@ public class MerchantController ( LoginMerchantHandler loginMerchant,
     }
 
     [Authorize]
-    [HttpPut("address/{id}")]
+    [HttpPut("{id}/address")]
     public async Task<IActionResult> UpdateAddress(Guid id, [FromBody] UpdateAddressRequest request, CancellationToken ct)
     {
         UpdateMerchantAddressCommand command = new(MerchantId.Create(id), Address.Create(request.Street,
@@ -68,7 +68,7 @@ public class MerchantController ( LoginMerchantHandler loginMerchant,
     }
 
     [Authorize]
-    [HttpPut("name/{id}")]
+    [HttpPut("{id}/name")]
     public async Task<IActionResult> UpdateName(Guid id, [FromBody] UpdateNameRequest request, CancellationToken ct)
     {
         UpdateMerchantNameCommand command = new(MerchantId.Create(id), request.Name);
@@ -77,7 +77,7 @@ public class MerchantController ( LoginMerchantHandler loginMerchant,
     }
 
     [Authorize]
-    [HttpPut("phone/{id}")]
+    [HttpPut("{id}/phone")]
     public async Task<IActionResult> UpdatePhoneNumber(Guid id, [FromBody] UpdatePhoneNumberRequest request, CancellationToken ct)
     {
         UpdateMerchantPhoneNumberCommand command = new(MerchantId.Create(id), PhoneNumber.Create(request.PhoneNumber));

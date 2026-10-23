@@ -1,4 +1,5 @@
 using Application.BulkPools.SearchPool.SearchOpenByProductId;
+using Application.Products.CreateProduct;
 using Application.Products.SearchProduct.BrowseActiveProducts;
 using Application.Products.SearchProduct.SearchProductByName;
 using Application.Products.SearchProduct.SearchProductBySku;
@@ -11,7 +12,8 @@ namespace Api.Controllers.Product;
 [Route("api/products")]
 public class ProductController (BrowseActiveProductsHandler browseProducts, 
                                 SearchProductByNameHandler searchByName, 
-                                SearchProductBySkuHandler searchBySku) : ControllerBase
+                                SearchProductBySkuHandler searchBySku
+                                ) : ControllerBase
 {
     private readonly BrowseActiveProductsHandler _browseProducts = browseProducts;
     private readonly SearchProductByNameHandler _searchName = searchByName;
