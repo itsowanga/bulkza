@@ -9,6 +9,7 @@ public class MerchantBuilder
     private MerchantId _id = MerchantId.New();
     private string _name = "abc";
 
+    private PasswordHash _password = PasswordHash.Create("000000000OO00");
     private MerchantStatus _status = MerchantStatus.Active;
     private MerchantRole _role = MerchantRole.Merchant;
     private Address _address = new AddressBuilder().Build();
@@ -51,5 +52,5 @@ public class MerchantBuilder
         return this;
     }
 
-    public Merchant Build() => new(_id, _name, _status, _role, _address, _phoneNumber,_registrationDate);
+    public Merchant Build() => new(_id, _name, _password,_status, _role, _address, _phoneNumber,_registrationDate);
 }

@@ -5,7 +5,7 @@ namespace Domain;
 
 public class Merchant
 {
-    public MerchantId Id {get; private set;}
+    public MerchantId MerchantId {get; private set;}
     public string Name {get; private set;}
 
     public MerchantStatus Status {get; private set;}
@@ -58,7 +58,7 @@ public class Merchant
         NameValidation(name, 100);
         DateValidation(registrationDate);
 
-        Id = id;
+        MerchantId = id;
         Status = status;
         Role = role;
         Address = address;
