@@ -27,6 +27,6 @@ public class RegisterMerchantHandler (IMerchantRepository merchant, IPasswordHas
 
         await _merchant.AddAsync(merchant, ct);
         await _uow.SaveChangesAsync(ct);
-        return new RegisterMerchantResult(merchant.Id.Value);
+        return new RegisterMerchantResult(merchant.MerchantId.Value);
     }
 }

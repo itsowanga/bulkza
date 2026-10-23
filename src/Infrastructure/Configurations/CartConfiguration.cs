@@ -15,7 +15,7 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
         builder.ToTable("Carts");
         builder.HasKey(cart => cart.CartId);
         builder.Property(cart => cart.CartId).HasConversion(id => id.Value, value => CartId.Create(value)).IsRequired();
-        builder.HasOne<Merchant>().WithMany().OnDelete(DeleteBehavior.Restrict).HasForeignKey(cart => cart.MerchantId).HasPrincipalKey(merchant => merchant.Id);
+        builder.HasOne<Merchant>().WithMany().OnDelete(DeleteBehavior.Restrict).HasForeignKey(cart => cart.MerchantId).HasPrincipalKey(merchant => merchant.MerchantId);
         builder.Property(cart => cart.MerchantId).HasConversion(merchantId => merchantId.Value, value => MerchantId.Create(value)).IsRequired();
         
         var jsonOptions = new JsonSerializerOptions();

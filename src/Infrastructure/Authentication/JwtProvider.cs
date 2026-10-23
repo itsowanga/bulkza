@@ -17,7 +17,7 @@ public class JwtProvider(IOptions<JwtOptions> options) : IJwtProvider
     
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, merchant.Id.Value.ToString()), 
+            new(JwtRegisteredClaimNames.Sub, merchant.MerchantId.Value.ToString()), 
             new(JwtRegisteredClaimNames.Name, merchant.Name),
             new(ClaimTypes.Role, merchant.Role.ToString()) 
         };
