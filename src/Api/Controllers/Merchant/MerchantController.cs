@@ -63,8 +63,25 @@ public class MerchantController ( LoginMerchantHandler loginMerchant,
                                                                                          request.Country,
                                                                                          request.Suburb));
 
-        var result = _updateAddress.Handle(command, ct);
+        var result = await _updateAddress.Handle(command, ct);
         return Ok(result);
     }
 
+    [Authorize]
+    [HttpPut("name/{id}")]
+    public async Task<IActionResult> UpdateName(Guid id, [FromBody] UpdateNameRequest request, CancellationToken ct)
+    {
+        UpdateMerchantNameCommand command = new(MerchantId.Create(id), request.Name);
+        var result = await _updateName.Handle(command, ct);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPut("phone/{id}")]
+    public async Task<IActionResult> UpdatePhoneNumber(Guid id, [FromBody] UpdatePhoneNumberRequest request, CancellationToken ct)
+    {
+        UpdateMerchantPhoneNumberCommand command = new(MerchantId.Create(id), PhoneNumber.Create(request.PhoneNumber));
+        var result = await _updatePhoneNumber.Handle(command, ct);
+        return Ok(result);
+    }
 }
