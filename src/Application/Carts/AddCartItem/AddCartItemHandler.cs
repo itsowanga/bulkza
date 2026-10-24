@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Domain;
+using Domain.ValueObjects;
 
 namespace Application.Carts.AddCartItem;
 
@@ -11,7 +12,9 @@ public class AddCartItemHandler(ICartRepository cart, IUnitOfWork uow)
     public async Task<AddCartItemResult> Handle(AddCartItemCommand cmd, CancellationToken ct)
 
     {
-        Cart cart_ = await _cart.GetCartByIdAsync(cmd.CartId, ct) ?? throw new KeyNotFoundException("Cart does not exist.");
+        var cart_ = await _cart.GetByMerchantIdAsync(cmd.MerchantId, ct);
+        cart_ ??= new(CartId.New(), cmd.MerchantId);
+        
         cart_.AddItem(cmd.ProductId, cmd.Quantity);
         var dtos = cart_.CartItems.Select(item => new CartItemDto(item.ProductId.Value, item.Quantity.Value)).ToList();
         _cart.Update(cart_);

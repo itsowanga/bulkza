@@ -11,7 +11,7 @@ public class UpdateItemQuantityHandler(ICartRepository cart, IUnitOfWork uow)
     public async Task<UpdateItemQuantityResult> Handle(UpdateItemQuantityCommand cmd, CancellationToken ct)
 
     {
-        Cart cart_ = await _cart.GetCartByIdAsync(cmd.CartId, ct) ?? throw new KeyNotFoundException("Cart does not exist.");
+        Cart cart_ = await _cart.GetByMerchantIdAsync(cmd.MerchantId, ct) ?? throw new KeyNotFoundException("Cart is empty.");
         cart_.UpdateQuantity(cmd.ProductId, cmd.Quantity);
         var dtos = cart_.CartItems.Select(item => new CartItemDto(item.ProductId.Value, item.Quantity.Value)).ToList();
         _cart.Update(cart_);

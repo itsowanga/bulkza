@@ -11,7 +11,7 @@ public class RemoveCartItemHandler(ICartRepository cart, IUnitOfWork uow)
     public async Task<RemoveCartItemResult> Handle(RemoveCartItemCommand cmd, CancellationToken ct)
 
     {
-        Cart cart_ = await _cart.GetCartByIdAsync(cmd.CartId, ct) ?? throw new KeyNotFoundException("Cart does not exist.");
+        Cart cart_ = await _cart.GetByMerchantIdAsync(cmd.MerchantId, ct) ?? throw new KeyNotFoundException("Cart does not exist.");
         cart_.RemoveItem(cmd.ProductId);
         var dtos = cart_.CartItems.Select(item => new CartItemDto(item.ProductId.Value, item.Quantity.Value)).ToList();
         _cart.Update(cart_);

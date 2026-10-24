@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Application.BulkPools.CancelPool;
 using Application.BulkPools.CreatePool;
 using Application.BulkPools.ExpirePool;
@@ -6,6 +5,7 @@ using Application.BulkPools.FinalisePool;
 using Application.BulkPools.JoinPool;
 using Application.BulkPools.LeavePool;
 using Application.BulkPools.LockPool;
+using Application.BulkPools.SearchPool.SearchByMerchant;
 using Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +20,8 @@ public class BulkPoolController( CreatePoolHandler create,
                                  LockPoolHandler lock_,
                                  FinalisePoolHandler finalise,
                                  ExpirePoolHandler expire,
-                                 CancelPoolHandler cancel)
+                                 CancelPoolHandler cancel,
+                                 SearchByMerchantHandler searchMine)
 : ControllerBase
 {
     private readonly CreatePoolHandler _create = create;
@@ -30,6 +31,7 @@ public class BulkPoolController( CreatePoolHandler create,
     private readonly FinalisePoolHandler _finalise = finalise;
     private readonly ExpirePoolHandler _expire = expire;
     private readonly CancelPoolHandler _cancel = cancel;
+    private readonly SearchByMerchantHandler _searchMine = searchMine;
 
     [Authorize]
     [HttpPost]
@@ -45,19 +47,37 @@ public class BulkPoolController( CreatePoolHandler create,
     }
 
     [Authorize]
-    [HttpPost("{id}/join/{merchantId}")]
-    public async Task<IActionResult> JoinPool(Guid id, Guid merchantId, [FromBody] JoinPoolRequest request, CancellationToken ct)
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMyPools([FromBody] GetMyPoolsRequest request, CancellationToken ct)
     {
-        JoinPoolCommand command = new(PoolId.Create(id), MerchantId.Create(merchantId), Quantity.Create(request.Quantity));
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        SearchByMerchantQuery query = new(MerchantId.Create((Guid)merchantId), request.Page, request.PageSize);
+        var result = await _searchMine.Handle(query, ct);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("{id}/join")]
+    public async Task<IActionResult> JoinPool(Guid id, [FromBody] JoinPoolRequest request, CancellationToken ct)
+    {
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        JoinPoolCommand command = new(PoolId.Create(id), MerchantId.Create((Guid)merchantId), Quantity.Create(request.Quantity));
         var result = await _join.Handle(command, ct);
         return Ok(result);
     }
 
     [Authorize]
-    [HttpPost("{id}/leave/{merchantId}")]
-    public async Task<IActionResult> LeavePool(Guid id, Guid merchantId, CancellationToken ct)
+    [HttpPost("{id}/leave")]
+    public async Task<IActionResult> LeavePool(Guid id,  CancellationToken ct)
     {
-        LeavePoolCommand command = new(PoolId.Create(id), MerchantId.Create(merchantId));
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        LeavePoolCommand command = new(PoolId.Create(id), MerchantId.Create((Guid)merchantId));
         var result = await _leave.Handle(command, ct);
         return Ok(result);
     }
@@ -97,8 +117,4 @@ public class BulkPoolController( CreatePoolHandler create,
         var result = await _cancel.Handle(command, ct);
         return Ok(result);
     }
-
-
-
-
 }

@@ -2,4 +2,4 @@ using Domain.ValueObjects;
 
 namespace Application.Carts.UpdateItemQuantity;
 
-public record UpdateItemQuantityCommand(CartId CartId, ProductId ProductId, Quantity Quantity);
+public record UpdateItemQuantityCommand(MerchantId MerchantId, ProductId ProductId, Quantity Quantity);
