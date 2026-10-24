@@ -20,7 +20,7 @@ public class LoginMerchantHandler (IMerchantRepository merchant, IPasswordHasher
     
         if(merchant.Status != MerchantStatus.Active) throw new InvalidOperationException("Suspended merchant cannot login. Contact IT.");
         
-        var verifyPassword = _passwordHasher.Verify(cmd.PasswordHash, merchant.PasswordHash.Password);
+        var verifyPassword = _passwordHasher.Verify(cmd.PasswordHash.Password, merchant.PasswordHash.Password);
 
         if(!verifyPassword) throw new AuthenticationException("Wrong password or phone number. Try again.");
 

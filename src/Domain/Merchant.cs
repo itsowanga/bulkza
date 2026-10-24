@@ -17,7 +17,7 @@ public class Merchant
     public DateTimeOffset RegistrationDate {get; private set;}
 
     public Merchant(
-        MerchantId id, 
+        MerchantId merchantId, 
         string name,
         PasswordHash passwordHash,
         MerchantStatus status,
@@ -42,9 +42,9 @@ public class Merchant
             throw new ArgumentException($"{nameof(address)} cannot be the default value.", nameof(address));
         }
 
-        if (id == default)
+        if (merchantId == default)
         {
-            throw new ArgumentException($"{nameof(id)} cannot be the default value.", nameof(id));
+            throw new ArgumentException($"{nameof(merchantId)} cannot be the default value.", nameof(merchantId));
         }
 
         if (phoneNumber == default)
@@ -58,7 +58,7 @@ public class Merchant
         NameValidation(name, 100);
         DateValidation(registrationDate);
 
-        MerchantId = id;
+        MerchantId = merchantId;
         Status = status;
         Role = role;
         Address = address;

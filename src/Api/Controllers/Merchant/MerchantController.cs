@@ -47,7 +47,7 @@ public class MerchantController ( LoginMerchantHandler loginMerchant,
     [HttpPost("login")]
     public async Task<IActionResult> LoginMerchant([FromBody] LoginMerchantRequest request, CancellationToken ct)
     {
-        LoginMerchantCommand command = new(PhoneNumber.Create(request.PhoneNumber), request.Password);
+        LoginMerchantCommand command = new(PhoneNumber.Create(request.PhoneNumber), PasswordHash.Create(request.Password));
         var result = await _loginMerchant.Handle(command, ct);
         return Ok(result);
     }

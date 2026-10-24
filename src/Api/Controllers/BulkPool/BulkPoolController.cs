@@ -28,18 +28,18 @@ public class BulkPoolController( CreatePoolHandler create, JoinPoolHandler join,
         return Ok(result);
     }
 
-    [HttpPost("{id}/join")]
-    public async Task<IActionResult> JoinPool(Guid id, [FromBody] JoinPoolRequest request, CancellationToken ct)
+    [HttpPost("{id}/join/{merchantId}")]
+    public async Task<IActionResult> JoinPool(Guid id, Guid merchantId, [FromBody] JoinPoolRequest request, CancellationToken ct)
     {
-        JoinPoolCommand command = new(PoolId.Create(id), MerchantId.Create(request.MerchantId), Quantity.Create(request.Quantity));
+        JoinPoolCommand command = new(PoolId.Create(id), MerchantId.Create(merchantId), Quantity.Create(request.Quantity));
         var result = await _join.Handle(command, ct);
         return Ok(result);
     }
 
-    [HttpPost("{id}/leave")]
-    public async Task<IActionResult> LeavePool(Guid id, [FromBody] LeavePoolRequest request, CancellationToken ct)
+    [HttpPost("{id}/leave/{merchantId}")]
+    public async Task<IActionResult> LeavePool(Guid id, Guid merchantId, CancellationToken ct)
     {
-        LeavePoolCommand command = new(PoolId.Create(id), MerchantId.Create(request.MerchantId));
+        LeavePoolCommand command = new(PoolId.Create(id), MerchantId.Create(merchantId));
         var result = await _leave.Handle(command, ct);
         return Ok(result);
     }
