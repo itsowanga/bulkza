@@ -4,11 +4,11 @@ using Application.Products.SearchProduct.SearchProductBySku;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.Product;
+namespace Api.Controllers.Products;
 
 [ApiController]
 [Route("api/products")]
-public class ProductController (BrowseActiveProductsHandler browseProducts, 
+public class ProductsController (BrowseActiveProductsHandler browseProducts, 
                                 SearchProductByNameHandler searchByName, 
                                 SearchProductBySkuHandler searchBySku
                                 ) : ControllerBase

@@ -7,7 +7,7 @@ using Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.Cart;
+namespace Api.Controllers.Carts;
 
 [ApiController]
 [Route("api/carts")]

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Api.Controllers.Merchant;
+namespace Api.Controllers.Merchants;
 public record LoginMerchantRequest
 (
     [Required] string PhoneNumber,

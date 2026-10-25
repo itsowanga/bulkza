@@ -1,2 +1,2 @@
-namespace Api.Controllers.Cart;
+namespace Api.Controllers.Carts;
 public record UpdateQuantityRequest(int Quantity);

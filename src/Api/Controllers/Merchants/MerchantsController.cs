@@ -4,11 +4,11 @@ using Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.Merchant;
+namespace Api.Controllers.Merchants;
 
 [ApiController]
 [Route("api/merchants")]
-public class MerchantController ( LoginMerchantHandler loginMerchant, 
+public class MerchantsController ( LoginMerchantHandler loginMerchant, 
                                   RegisterMerchantHandler registerMerchant) : ControllerBase
 {
     private readonly LoginMerchantHandler _loginMerchant = loginMerchant;

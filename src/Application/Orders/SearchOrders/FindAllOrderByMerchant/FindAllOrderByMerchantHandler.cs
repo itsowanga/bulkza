@@ -6,7 +6,7 @@ namespace Application.Orders.SearchOrders.FindAllOrderByMerchant;
 
 
 
-public class SearchByMerchantHandler(IOrderRepository order)
+public class FindAllOrderByMerchantHandler(IOrderRepository order)
 {
     private readonly IOrderRepository _order = order;
 

@@ -10,11 +10,11 @@ using Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api.Controllers.BulkPool;
+namespace Api.Controllers.BulkPools;
 
 [ApiController]
 [Route("api/bulkpools")]
-public class BulkPoolController( CreatePoolHandler create, 
+public class BulkPoolsController(CreatePoolHandler create, 
                                  JoinPoolHandler join, 
                                  LeavePoolHandler leave,
                                  LockPoolHandler lock_,

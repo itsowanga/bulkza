@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Api.Controllers.BulkPool;
+namespace Api.Controllers.BulkPools;
 
 public record CreatePoolRequest([Required]Guid ProductId, 
                                 [Required] int MinimumQuantity, 

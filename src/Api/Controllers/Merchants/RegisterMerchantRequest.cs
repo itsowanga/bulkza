@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.InteropServices;
 
-namespace Api.Controllers.Merchant;
+namespace Api.Controllers.Merchants;
 public record RegisterMerchantRequest
 (
     [Required] string Name,
