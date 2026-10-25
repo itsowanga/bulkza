@@ -8,6 +8,8 @@ public class BrowseActiveProductsHandler(IProductRepository product)
 
     public async Task<PagedResult<ProductDto>> Handle(BrowseActiveProductsQuery query, CancellationToken ct)
     {
+        if (query.Page < 1) throw new ArgumentException("Page number cannot be less than 1.");
+        if (query.PageSize > 50) throw new ArgumentException("Maximum page size is 50.");
         var (products, totalProducts) = await _product.GetActiveAsync(query.Page, query.PageSize, query.Category, ct);
         var dtos = products.Select(product => new ProductDto(product.ProductId.Value,
                                 product.Name,

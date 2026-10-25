@@ -48,12 +48,12 @@ public class BulkPoolsController(CreatePoolHandler create,
 
     [Authorize]
     [HttpGet("mine")]
-    public async Task<IActionResult> GetMyPools([FromBody] GetMyPoolsRequest request, CancellationToken ct)
+    public async Task<IActionResult> GetMyPools([FromQuery] int page, [FromQuery] int pageSize, CancellationToken ct)
     {
         var merchantId = User.GetMerchantId();
         if (merchantId is null) return Unauthorized();
 
-        SearchByMerchantQuery query = new(MerchantId.Create((Guid)merchantId), request.Page, request.PageSize);
+        SearchByMerchantQuery query = new(MerchantId.Create((Guid)merchantId), page, pageSize);
         var result = await _searchMine.Handle(query, ct);
         return Ok(result);
     }

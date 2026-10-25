@@ -63,12 +63,12 @@ public class OrdersController ( ProcessPaymentHandler pay,
 
     [Authorize]
     [HttpGet("mine")]
-    public async Task<IActionResult> FindAll([FromBody] FindAllOrdersRequest request, CancellationToken ct)
+    public async Task<IActionResult> FindAll([FromQuery] int page, int pageSize , CancellationToken ct)
     {
         var merchantId = User.GetMerchantId();
         if(merchantId is null) return Unauthorized();
 
-        FindAllOrderByMerchantQuery query = new(MerchantId.Create((Guid)merchantId), request.Page, request.PageSize);
+        FindAllOrderByMerchantQuery query = new(MerchantId.Create((Guid)merchantId), page, pageSize);
         var result = await _findAll.Handle(query, ct);
         return Ok(result);
     }

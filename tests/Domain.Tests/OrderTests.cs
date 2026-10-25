@@ -84,7 +84,7 @@ public class OrderTests
         var o = new OrderBuilder().Build();
         o.MarkAsPaid(Guid.NewGuid());
         o.MarkAsShipped();
-        Action act = () => o.Cancel();
+        Action act = () => o.Cancel(Guid.NewGuid());
         act.Should().Throw<InvalidOperationException>();
     }  
 
@@ -94,6 +94,6 @@ public class OrderTests
     {
         var o = new OrderBuilder().Build();
         o.MarkAsPaid(Guid.NewGuid());
-        o.TransactionId.Should().NotBe(Guid.Empty);
+        o.PaymentId.Should().NotBe(Guid.Empty);
     }
 }

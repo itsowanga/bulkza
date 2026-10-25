@@ -74,7 +74,7 @@ public class CartController( ClearCartHandler clear,
     }
 
     [Authorize]
-    [HttpDelete("all")]
+    [HttpDelete("clear")]
     public async Task<IActionResult> ClearCart(CancellationToken ct)
     {
         var merchantId = User.GetMerchantId();

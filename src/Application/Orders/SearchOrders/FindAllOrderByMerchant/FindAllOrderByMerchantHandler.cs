@@ -12,6 +12,8 @@ public class FindAllOrderByMerchantHandler(IOrderRepository order)
 
     public async Task<PagedResult<OrderDto>> Handle(FindAllOrderByMerchantQuery query, CancellationToken ct)
     {
+        if (query.Page < 1) throw new ArgumentException("Page number cannot be less than 1.");
+        if (query.PageSize > 50) throw new ArgumentException("Page size cannot exceed 50.");
         var (orders, totalOrders) = await _order.GetByMerchantIdAsync(query.MerchantId, query.Page, query.PageSize, ct);
 
         

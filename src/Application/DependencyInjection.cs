@@ -9,7 +9,6 @@ using Application.BulkPools.SearchPool.SearchByMerchant;
 using Application.BulkPools.SearchPool.SearchOpenByProductId;
 using Application.Carts.AddCartItem;
 using Application.Carts.ClearCart;
-using Application.Carts.CreateCart;
 using Application.Carts.RemoveCartItem;
 using Application.Carts.UpdateItemQuantity;
 using Application.Carts.ViewCart;
@@ -56,7 +55,6 @@ public static class DependencyInjection
         // Cart handlers
         services.AddScoped<AddCartItemHandler>();
         services.AddScoped<ClearCartHandler>();
-        services.AddScoped<CreateCartHandler>();
         services.AddScoped<RemoveCartItemHandler>();
         services.AddScoped<UpdateItemQuantityHandler>();
         services.AddScoped<ViewCartHandler>();
