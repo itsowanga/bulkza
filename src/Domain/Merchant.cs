@@ -103,7 +103,7 @@ public class Merchant
 
     public void UpdatePhoneNumber(PhoneNumber phoneNumber)
     {
-        if (phoneNumber.Equals(default(PhoneNumber)))
+        if (phoneNumber.Equals(default))
         {
             throw new ArgumentException($"{nameof(phoneNumber)} cannot contain a default phone number.", nameof(phoneNumber));
         }  
@@ -113,7 +113,7 @@ public class Merchant
 
     public void UpdateAddress(Address address)
     {
-        if (address.Equals(default(Address)))
+        if (address.Equals(default))
         {
             throw new ArgumentException($"{nameof(address)} cannot contain a default address.", nameof(address));
         }  

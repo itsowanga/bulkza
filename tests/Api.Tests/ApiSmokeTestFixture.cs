@@ -71,7 +71,12 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
                     name = "Test Merchant",
                     phoneNumber,
                     password,
-                    confirmPassword = password
+                    street = "45 Voortrekker Rd",
+                    city = "Aliwal North",
+                    province = "Northern Cape",
+                    postalCode = "7778",
+                    country = "South Africa",
+                    suburb = "Daveyton"
                 });
 
             registerResponse.EnsureSuccessStatusCode();
