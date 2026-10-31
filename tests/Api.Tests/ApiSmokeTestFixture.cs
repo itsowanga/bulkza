@@ -1,10 +1,13 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Data.Common;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Respawn;
 using Testcontainers.MsSql;
 
 namespace Api.Tests;
@@ -14,6 +17,7 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
     private MsSqlContainer _container = null!;
     private WebApplicationFactory<Program> _factory = null!;
     private string _connectionString = null!;
+    private Respawner _respawner = null!;
 
     public HttpClient Client { get; private set; } = null!;
     public IServiceProvider Services => _factory.Services;
@@ -53,6 +57,15 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
         await db.Database.MigrateAsync();
+        
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        
+        _respawner = await Respawner.CreateAsync(connection, new RespawnerOptions
+        {
+            DbAdapter = DbAdapter.SqlServer,
+            TablesToIgnore = ["__EFMigrationsHistory"] 
+        });
     }
 
     public async Task<HttpClient> CreateAuthenticatedClientAsync(string phoneNumber, string password)
@@ -98,6 +111,12 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
         return authenticated;
     }
 
+    public async Task ResetDatabaseAsync()
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync();
+        await _respawner.ResetAsync(connection);
+    }
     public async Task DisposeAsync()
     {
         Client.Dispose();

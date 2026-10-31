@@ -8,28 +8,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Api.Tests;
 
 [Collection("api")]
-public class AuthEndpointTests (ApiSmokeTestFixture fixture)
+public class AuthEndpointTests
 {
-    private readonly ApiSmokeTestFixture _fixture = fixture;
+    private readonly ApiSmokeTestFixture _fixture;
+    
+    public AuthEndpointTests(ApiSmokeTestFixture fixture)
+    {
+        _fixture = fixture;
+        _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
+    }
 
     [Fact]
     public async Task Register_WithValidInput_ReturnsSuccessAndPersistsMerchant()
     {
         var phoneNumber = "0825547878";
-
-        var response = await _fixture.Client.PostAsJsonAsync("/api/merchants/register", new
-        {
-            name = "Test Merchant",
-            phoneNumber,
-            password = "$tr0ngP@ssw0rd",
-            street = "45 Voortrekker Rd",
-            city = "Aliwal North",
-            province = "Northern Cape",
-            postalCode = "7778",
-            country = "South Africa",
-            suburb = "Daveyton"
-        });
-
+        var password = "$tr0ngP@ssw0rd";
+        var response = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         using var scope = _fixture.Services.CreateScope();
@@ -38,5 +32,18 @@ public class AuthEndpointTests (ApiSmokeTestFixture fixture)
         merchant.Should().NotBeNull();
         merchant.PasswordHash.Password.Should().NotBe("$tr0ngP@ssw0rd");
         merchant.PasswordHash.Password.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task Register_WithDuplicatePhoneNumber_ReturnsConflictError()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ngP@ssw0rd";
+
+        var firstResponse = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        firstResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        var secondResponse = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        secondResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
+
     }
 }
