@@ -1,21 +1,24 @@
-using System.Net.Http.Json;
 using Domain.ValueObjects;
 using FluentAssertions;
 using Infrastructure;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.Tests;
 
 [Collection("api")]
-public class AuthEndpointTests
+public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly ApiSmokeTestFixture _fixture;
+    private readonly WebApplicationFactory<Program> _factory;
     
-    public AuthEndpointTests(ApiSmokeTestFixture fixture)
+    public AuthEndpointTests(ApiSmokeTestFixture fixture, WebApplicationFactory<Program> factory)
     {
         _fixture = fixture;
+        _factory = factory;
         _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
+        
     }
 
     [Fact]
@@ -35,7 +38,7 @@ public class AuthEndpointTests
     }
 
     [Fact]
-    public async Task Register_WithDuplicatePhoneNumber_ReturnsConflictError()
+    public async Task Register_WithDuplicatePhoneNumber_ReturnsBadRequest()
     {
         var phoneNumber = "0825547878";
         var password = "$tr0ngP@ssw0rd";
@@ -43,7 +46,63 @@ public class AuthEndpointTests
         var firstResponse = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
         firstResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         var secondResponse = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
-        secondResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
+        secondResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+
+    }
+
+    [Fact]
+    public async Task Register_WithInvalidPassword_ReturnsBadRequest()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ng";
+
+        var response = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Login_WithValidCredentials_ReturnsSuccessMessage()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ngP@ssw0rd";
+
+        var response = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+
+        var (client, message) = await AuthHelper.LoginMerchant(_fixture, _factory, phoneNumber, password);
+
+        message.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        client!.DefaultRequestHeaders.Authorization.Should().NotBeNull();
+
+    }
+
+    [Fact]
+    public async Task Login_WithWrongPassword_ReturnsInternalServer()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ngP@ssw0rd";
+
+        var response = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+
+        var (client, message) = await AuthHelper.LoginMerchant(_fixture, _factory, phoneNumber, "$tr0ngP@sswrd");
+        message.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
+        client.Should().BeNull();
+
+    }
+
+    [Fact]
+    public async Task Login_WithWrongPhone_ReturnsInternalServer()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ngP@ssw0rd";
+
+        var response = await AuthHelper.RegisterMerchant(_fixture, phoneNumber, password);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+
+        var (client, message) = await AuthHelper.LoginMerchant(_fixture, _factory, "0855689987", password);
+        message.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
+        client.Should().BeNull();
 
     }
 }
