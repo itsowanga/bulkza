@@ -37,7 +37,12 @@ public class BulkPoolsController(CreatePoolHandler create,
     [HttpPost]
     public async Task<IActionResult> CreatePool([FromBody] CreatePoolRequest request, CancellationToken ct)
     {
-        CreatePoolCommand command = new(ProductId.Create(request.ProductId),
+
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        CreatePoolCommand command = new(MerchantId.Create((Guid)merchantId), Quantity.Create(request.Quantity),
+                                                         ProductId.Create(request.ProductId),
                                                          Quantity.Create(request.MinimumQuantity),
                                                          request.MinimumMerchants,
                                                          request.Deadline);

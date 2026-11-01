@@ -7,11 +7,13 @@ using Domain;
 namespace Api.Tests;
 public class BulkPoolHelper
 {
-    public static async Task<PagedResult<BulkPoolDto>?> GetMyPoolsAsync(HttpClient client, int page, int pageSize)
+    public static async Task<PagedResult<BulkPoolDto>> GetMyPoolsAsync(HttpClient client, int page, int pageSize)
     {
-        var getPools = await client.GetAsync($"/api/bulkpools/mine?page={page}&pageSize={pageSize}");
-        var result = await getPools.Content.ReadFromJsonAsync<PagedResult<BulkPoolDto>>();
-        return result;
+        var response = await client.GetAsync($"/api/bulkpools/mine?page={page}&pageSize={pageSize}");
+        response.EnsureSuccessStatusCode();  
+
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<BulkPoolDto>>();
+        return result ?? throw new InvalidOperationException("Response body was empty.");
     }
     public static async Task<HttpResponseMessage> CreatePoolAsync(HttpClient client, Guid product, int minimumQuantity, int minimumMerchants, DateTimeOffset deadline)
     {

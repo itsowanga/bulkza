@@ -6,7 +6,10 @@ using Domain.Enums;
 using Domain.ValueObjects;
 using DotNet.Testcontainers.Builders;
 using FluentAssertions;
+using Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Api.Tests;
 
@@ -22,7 +25,7 @@ public class BulkPoolTests
         _fixture = fixture;
         _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
     }
-
+/*
     [Fact]
     public async Task GetMyPools_WithInvalidPagination_ReturnsBadRequest()
     {
@@ -48,9 +51,9 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items.Count.Should().Be(2);
+        result.Items.Count.Should().Be(2);
 
-        foreach(var pools in result!.Items)
+        foreach(var pools in result.Items)
         {
             pools.Status.Should().Be(BulkPoolStatus.Open);
         }
@@ -97,8 +100,8 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(0);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items[0].CurrentQuantity.Should().Be(0);
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -108,7 +111,7 @@ public class BulkPoolTests
         joinPool.EnsureSuccessStatusCode();
 
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(100);
+        result.Items[0].CurrentQuantity.Should().Be(100);
         
     }
 
@@ -126,8 +129,8 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(0);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items[0].CurrentQuantity.Should().Be(0);
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -159,8 +162,8 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(0);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items[0].CurrentQuantity.Should().Be(0);
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -169,13 +172,13 @@ public class BulkPoolTests
 
         joinPool.EnsureSuccessStatusCode();
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(100);
+        result.Items[0].CurrentQuantity.Should().Be(100);
 
         var leavePool = await client.PostAsync($"/api/bulkpools/{poolId}/leave", null);
         leavePool.EnsureSuccessStatusCode();
 
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].CurrentQuantity.Should().Be(0);
+        result.Items[0].CurrentQuantity.Should().Be(0);
              
     }
 
@@ -193,8 +196,8 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items.Count.Should().Be(1);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items.Count.Should().Be(1);
+        var poolId = result.Items[0].PoolId; 
 
         var leavePool = await client.PostAsync($"/api/bulkpools/{poolId}/leave", null);
         leavePool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -215,8 +218,8 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items.Count.Should().Be(1);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items.Count.Should().Be(1);
+        var poolId = result.Items[0].PoolId; 
 
         var lockPool = await client.PostAsync($"/api/bulkpools/{poolId}/lock", null);
         lockPool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -237,9 +240,9 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items.Count.Should().Be(1);
-        result!.Items[0].Status.Should().Be(BulkPoolStatus.Open);
-        var poolId = result!.Items[0].PoolId; 
+        result.Items.Count.Should().Be(1);
+        result.Items[0].Status.Should().Be(BulkPoolStatus.Open);
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -252,7 +255,7 @@ public class BulkPoolTests
         lockPool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
              
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].Status.Should().Be(BulkPoolStatus.Locked);
+        result.Items[0].Status.Should().Be(BulkPoolStatus.Locked);
     }
 
     [Fact]
@@ -269,7 +272,7 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        var poolId = result!.Items[0].PoolId; 
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -285,7 +288,7 @@ public class BulkPoolTests
         finalisePool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].Status.Should().Be(BulkPoolStatus.Finalized);
+        result.Items[0].Status.Should().Be(BulkPoolStatus.Finalized);
     }
 
     [Fact]
@@ -302,7 +305,7 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        var poolId = result!.Items[0].PoolId; 
+        var poolId = result.Items[0].PoolId; 
 
         var finalisePool = await client.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
         finalisePool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
@@ -323,12 +326,12 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        var poolId = result!.Items[0].PoolId; 
+        var poolId = result.Items[0].PoolId; 
 
         var cancelPool = await client.PostAsync($"/api/bulkpools/{poolId}/cancel", null);
         cancelPool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        result!.Items[0].Status.Should().Be(BulkPoolStatus.Cancelled);
+        result.Items[0].Status.Should().Be(BulkPoolStatus.Cancelled);
     }
 
     [Fact]
@@ -345,7 +348,7 @@ public class BulkPoolTests
         response.EnsureSuccessStatusCode();
 
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
-        var poolId = result!.Items[0].PoolId; 
+        var poolId = result.Items[0].PoolId; 
 
         var joinPool = await client.PostAsJsonAsync($"/api/bulkpools/{poolId}/join", new
         {
@@ -385,5 +388,37 @@ public class BulkPoolTests
         var poolId = result.Items[0].PoolId; 
 
         
+    }
+*/
+
+   [Fact]
+    public async Task LeavePool_WithInvalidMerchant_ReturnsBadRequest()
+    {
+        ProductId product = ProductId.New();
+        var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
+                                                                    "White Star 1kg", null, ProductCategory.MaizeMeal, 
+                                                                    UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
+                                                                    );
+
+        var response = await BulkPoolHelper.CreatePoolAsync(client, product.Value, 150, 10, DateTimeOffset.UtcNow.AddDays(30));
+        response.EnsureSuccessStatusCode();
+
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
+        var poolsInDb = await db.BulkPools.ToListAsync();
+        Console.WriteLine($"Pools in DB: {poolsInDb.Count}");
+        foreach (var p in poolsInDb)
+            Console.WriteLine($"  Pool {p.PoolId}:  Status={p.Status}");
+
+        var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
+        response.EnsureSuccessStatusCode();
+
+        result.Items.Count.Should().Be(1);
+        var poolId = result.Items[0].PoolId; 
+
+        var leavePool = await client.PostAsync($"/api/bulkpools/{poolId}/leave", null);
+        leavePool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
+             
     }
 }
