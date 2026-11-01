@@ -15,11 +15,12 @@ public class BulkPoolHelper
         var result = await response.Content.ReadFromJsonAsync<PagedResult<BulkPoolDto>>();
         return result ?? throw new InvalidOperationException("Response body was empty.");
     }
-    public static async Task<HttpResponseMessage> CreatePoolAsync(HttpClient client, Guid product, int minimumQuantity, int minimumMerchants, DateTimeOffset deadline)
+    public static async Task<HttpResponseMessage> CreatePoolAsync(HttpClient client, int Quantity, Guid product, int minimumQuantity, int minimumMerchants, DateTimeOffset deadline)
     {
         
         var response = await client.PostAsJsonAsync("/api/bulkpools", new
         {
+            quantity = Quantity,
             ProductId = product,
             MinimumQuantity = minimumQuantity,
             MinimumMerchants = minimumMerchants,
