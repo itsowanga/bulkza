@@ -57,7 +57,6 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
         await db.Database.MigrateAsync();
-        
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync();
         
