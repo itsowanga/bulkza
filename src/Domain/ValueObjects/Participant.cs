@@ -8,20 +8,12 @@ public readonly record struct Participant
 
     private Participant(MerchantId merchantId, Quantity quantity)
     {
-        if (merchantId == default)
-        {
-            throw new ArgumentException($"{nameof(merchantId)} should not be the default value.", nameof(merchantId));
-        }
-
-        if (quantity == default)
-        {
-            throw new ArgumentException($"{nameof(quantity)} should not be the default value.", nameof(quantity));
-        }
+        if (merchantId == default) throw new ArgumentException($"{nameof(merchantId)} should not be the default value.", nameof(merchantId));
+        if (quantity == default) throw new ArgumentException($"{nameof(quantity)} should not be the default value.", nameof(quantity));
         
         MerchantId = merchantId;
         Quantity = quantity;
     }
-
     public static Participant Create(MerchantId merchantId, Quantity quantity) => new(merchantId, quantity);
     public override string ToString() => $"{MerchantId}: {Quantity}";
 }

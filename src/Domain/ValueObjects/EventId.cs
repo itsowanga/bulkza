@@ -5,11 +5,8 @@ public readonly record struct EventId
 
     private EventId(Guid value)
     {
-        if (value == Guid.Empty)
-        {
-            throw new ArgumentException("EventId cannot be empty");
-        }
-            Value = value;
+        if (value == Guid.Empty) throw new ArgumentException("EventId cannot be empty");
+        Value = value;
     }
     public static EventId New() => new(Guid.NewGuid());
     public static EventId Create(Guid value) => new(value);

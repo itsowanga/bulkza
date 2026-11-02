@@ -13,8 +13,8 @@ public class BulkPool
     public int MinimumMerchants {get; private set;}
     public DateTimeOffset Deadline {get; private set;}
     public DateTimeOffset CreatedAt {get; private set;}
-    private List<Participant> _participants;
-    private List<IDomainEvent> _domainEvents;
+    private readonly List<Participant> _participants;
+    private readonly List<IDomainEvent> _domainEvents;
     public BulkPool( PoolId poolId,
                      ProductId productId,
                      Quantity minimumQuantity,

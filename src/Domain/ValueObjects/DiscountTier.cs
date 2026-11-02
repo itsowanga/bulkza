@@ -6,21 +6,12 @@ public readonly record struct DiscountTier
 
     private DiscountTier(Quantity minimumQuantity, decimal discountPercentage)
     {
-        if (discountPercentage < 0 || discountPercentage > 100)
-        {
-            throw new ArgumentException($"{nameof(discountPercentage)} should be between 0 and 100.", nameof(discountPercentage));
-
-        }
-
-        if (minimumQuantity == default)
-        {
-            throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.", nameof(minimumQuantity));
-        }
-
+        if (discountPercentage < 0 || discountPercentage > 100) throw new ArgumentException($"{nameof(discountPercentage)} should be between 0 and 100.", nameof(discountPercentage));
+        if (minimumQuantity == default) throw new ArgumentException($"{nameof(minimumQuantity)} cannot be the default value.", nameof(minimumQuantity));
+        
         MinimumQuantity = minimumQuantity;
         DiscountPercentage = discountPercentage;
     }
-
     public static DiscountTier Create(Quantity minimumQuantity, decimal discountPercentage) => new(minimumQuantity, discountPercentage);
     public override string ToString() => $"{MinimumQuantity}+ => {DiscountPercentage}%";
 }

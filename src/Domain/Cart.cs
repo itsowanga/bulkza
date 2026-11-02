@@ -6,22 +6,12 @@ public class Cart
 {
     public CartId CartId {get; private set;}
     public MerchantId MerchantId {get; private set;}
-    private List<CartItem> _cartItems;
+    private readonly List<CartItem> _cartItems;
 
     public Cart(CartId cartId, MerchantId merchantId)
     {
-        if (cartId == default)
-        {
-            throw new ArgumentException($"{nameof(cartId)} cannot be the default value.");
-
-        }
-
-        if (merchantId == default)
-        {
-            throw new ArgumentException($"{nameof(merchantId)} cannot be the default value.");
-
-        }
-
+        if (cartId == default) throw new ArgumentException($"{nameof(cartId)} cannot be the default value.");
+        if (merchantId == default) throw new ArgumentException($"{nameof(merchantId)} cannot be the default value.");
         CartId = cartId;
         MerchantId = merchantId;
         _cartItems = [];
@@ -32,16 +22,8 @@ public class Cart
 
     public void AddItem(ProductId productId, Quantity quantity)
     {
-        if (productId == default)
-        {
-            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
-        }
-
-        if (quantity == default)
-        {
-            throw new ArgumentException($"{nameof(quantity)} cannot be the default value.");
-        }
-
+        if (productId == default) throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+        if (quantity == default) throw new ArgumentException($"{nameof(quantity)} cannot be the default value.");
         int index = _cartItems.FindIndex(i => i.ProductId == productId);
         if (index >= 0)
         {
@@ -58,63 +40,24 @@ public class Cart
 
     public void RemoveItem(ProductId productId)
     {
-
-        if (productId == default)
-        {
-            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
-
-        }
-        
+        if (productId == default) throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
         int index = _cartItems.FindIndex(i => i.ProductId == productId);
-
-        if (index < 0)
-        {
-            throw new InvalidOperationException($"{nameof(productId)} doesn't exist.");
-
-        }
-
+        if (index < 0) throw new InvalidOperationException($"{nameof(productId)} doesn't exist.");
         _cartItems.Remove(_cartItems[index]);
     }
 
    public void UpdateQuantity(ProductId productId, Quantity quantity)
     {
 
-        if (productId == default)
-        {
-            throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
-        }
-
-        if (quantity == default)
-        {
-            throw new ArgumentException($"{nameof(quantity)} cannot be the default value.");
-        }
-       
-       
+        if (productId == default) throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
+        if (quantity == default) throw new ArgumentException($"{nameof(quantity)} cannot be the default value.");
         int index = _cartItems.FindIndex(i => i.ProductId == productId);
-
-        if (index < 0)
-        {
-            throw new InvalidOperationException($"{nameof(productId)} doesn't exist.");
-        }
-
+        if (index < 0) throw new InvalidOperationException($"{nameof(productId)} doesn't exist.");
          _cartItems[index] = CartItem.Create(productId, quantity);
 
     }
-
-    public void Clear()
-    {
-        _cartItems.Clear();
-    }
-
-    public int GetTotalQuantity()
-    {
-      return _cartItems.Sum(i => i.Quantity.Value);
-    }
-
-    public bool IsEmpty()
-    {
-       return _cartItems.Count == 0;
-    }
-
-
+    public void Clear() =>  _cartItems.Clear();
+    public int GetTotalQuantity() => _cartItems.Sum(i => i.Quantity.Value);
+    public bool IsEmpty() => _cartItems.Count == 0;
+  
 }

@@ -6,11 +6,8 @@ public readonly record struct CartId
 
     private CartId(Guid value)
     {
-        if (value == Guid.Empty)
-        {
-            throw new ArgumentException("Cart Id cannot be empty");
-        }
-            Value = value;
+        if (value == Guid.Empty) throw new ArgumentException("Cart Id cannot be empty");
+        Value = value;
     }
     public static CartId New() => new(Guid.NewGuid());
     public static CartId Create(Guid value) => new(value);

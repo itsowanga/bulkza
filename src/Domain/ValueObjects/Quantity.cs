@@ -5,12 +5,7 @@ public readonly record struct Quantity
 
     private Quantity(int value)
     {
-        if (value <= 0)
-        {
-            throw new ArgumentException("Quantity must be greater than zero.", nameof(value));
-
-        }
-
+        if (value <= 0) throw new ArgumentException("Quantity must be greater than zero.", nameof(value));
         Value = value;
     }
 

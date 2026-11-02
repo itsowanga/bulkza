@@ -5,11 +5,8 @@ public readonly record struct MerchantId
 
     private MerchantId(Guid value)
     {
-        if (value == Guid.Empty)
-        {
-            throw new ArgumentException($"{nameof(value)} cannot be empty", nameof(value));
-        }
-            Value = value;
+        if (value == Guid.Empty) throw new ArgumentException($"{nameof(value)} cannot be empty", nameof(value));
+        Value = value;
     }
     public static MerchantId New() => new(Guid.NewGuid());
     public static MerchantId Create(Guid value) => new(value);

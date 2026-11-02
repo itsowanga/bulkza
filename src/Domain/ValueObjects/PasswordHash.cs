@@ -7,16 +7,8 @@ public readonly record struct PasswordHash
 
     private PasswordHash(string password)
     {
-        if(string.IsNullOrWhiteSpace(password))
-        {
-            throw new ArgumentException("Please enter a valid password.");
-        }
-
-        if(password.Length > 100)
-        {
-            throw new ArgumentException("Password length cannot be greater than 100.");
-        }
-
+        if(string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Please enter a valid password.");
+        if(password.Length > 100) throw new ArgumentException("Password length cannot be greater than 100.");
         Password = password;
     }
 

@@ -27,37 +27,15 @@ public class Merchant
         DateTimeOffset registrationDate
         )
     {
-        if (!Enum.IsDefined(status))
-        {
-            throw new ArgumentException("Invalid merchant status.", nameof(status));
-        }
-
-        if (!Enum.IsDefined(role))
-        {
-            throw new ArgumentException("Invalid merchant role.", nameof(role));
-        }
-
-        if (address == default)
-        {
-            throw new ArgumentException($"{nameof(address)} cannot be the default value.", nameof(address));
-        }
-
-        if (merchantId == default)
-        {
-            throw new ArgumentException($"{nameof(merchantId)} cannot be the default value.", nameof(merchantId));
-        }
-
-        if (phoneNumber == default)
-        {
-            throw new ArgumentException($"{nameof(phoneNumber)} cannot be the default value.", nameof(phoneNumber));
-        }
-        if(passwordHash == default)
-        {
-            throw new ArgumentException($"Password cannot be the default value.", nameof(passwordHash));
-        }
+        if (!Enum.IsDefined(status)) throw new ArgumentException("Invalid merchant status.", nameof(status));
+        if (!Enum.IsDefined(role)) throw new ArgumentException("Invalid merchant role.", nameof(role));
+        if (address == default) throw new ArgumentException($"{nameof(address)} cannot be the default value.", nameof(address));
+        if (merchantId == default) throw new ArgumentException($"{nameof(merchantId)} cannot be the default value.", nameof(merchantId));
+        if (phoneNumber == default) throw new ArgumentException($"{nameof(phoneNumber)} cannot be the default value.", nameof(phoneNumber));
+        if(passwordHash == default) throw new ArgumentException($"Password cannot be the default value.", nameof(passwordHash));
+        
         NameValidation(name, 100);
         DateValidation(registrationDate);
-
         MerchantId = merchantId;
         Status = status;
         Role = role;
@@ -67,32 +45,16 @@ public class Merchant
         Name = name;
         PasswordHash = passwordHash;
     }
-
     private static void NameValidation(string name, int maxLength)
     {
-     
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException($"{nameof(name)} should not be blank.", nameof(name));
-        }
-
-        if (name.Length > maxLength)
-        {
-            throw new ArgumentException($"{nameof(name)} should not exceed {maxLength} characters.", nameof(name));
-
-        }
+        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException($"{nameof(name)} should not be blank.", nameof(name));
+        if (name.Length > maxLength) throw new ArgumentException($"{nameof(name)} should not exceed {maxLength} characters.", nameof(name));
     }
     private static void DateValidation(DateTimeOffset registrationDate)
     {
-        if (registrationDate == default)
-        {
-            throw new ArgumentException($"{nameof(registrationDate)} is missing.", nameof(registrationDate));
-        }
-
-        if(registrationDate.CompareTo(DateTimeOffset.UtcNow) == 1)
-        {
-            throw new ArgumentException($"{nameof(registrationDate)} should not be in the future.", nameof(registrationDate));
-        }
+        if (registrationDate == default) throw new ArgumentException($"{nameof(registrationDate)} is missing.", nameof(registrationDate));
+        if(registrationDate.CompareTo(DateTimeOffset.UtcNow) == 1) throw new ArgumentException($"{nameof(registrationDate)} should not be in the future.", nameof(registrationDate));
+        
     }
 
     public void UpdateName(string name)
@@ -100,34 +62,19 @@ public class Merchant
         NameValidation(name, 100);
         Name = name;
     }
-
     public void UpdatePhoneNumber(PhoneNumber phoneNumber)
     {
-        if (phoneNumber.Equals(default))
-        {
-            throw new ArgumentException($"{nameof(phoneNumber)} cannot contain a default phone number.", nameof(phoneNumber));
-        }  
-
+        if (phoneNumber.Equals(default)) throw new ArgumentException($"{nameof(phoneNumber)} cannot contain a default phone number.", nameof(phoneNumber));
         PhoneNumber = phoneNumber;
     }
-
     public void UpdateAddress(Address address)
     {
-        if (address.Equals(default))
-        {
-            throw new ArgumentException($"{nameof(address)} cannot contain a default address.", nameof(address));
-        }  
-
+        if (address.Equals(default)) throw new ArgumentException($"{nameof(address)} cannot contain a default address.", nameof(address));
         Address = address;
     }
-
     public void ChangeMerchantStatus(MerchantStatus status)
     {
-        if(!Enum.IsDefined(status))
-        {
-            throw new ArgumentException($"{nameof(status)} is invalid.", nameof(status));
-        }
-
+        if(!Enum.IsDefined(status)) throw new ArgumentException($"{nameof(status)} is invalid.", nameof(status));
         Status = status;
     }
 
