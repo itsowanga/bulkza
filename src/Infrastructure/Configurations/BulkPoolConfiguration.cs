@@ -22,6 +22,7 @@ public class BulkPoolConfiguration : IEntityTypeConfiguration<BulkPool>
         builder.Property(pool => pool.MinimumMerchants).IsRequired();
         builder.Property(pool => pool.Deadline).IsRequired();
         builder.Property(pool => pool.CreatedAt).IsRequired();
+        builder.Ignore(pool => pool.DomainEvents);
         var jsonOptions = new JsonSerializerOptions();
         jsonOptions.Converters.Add(new ParticipantsJsonConverter());
 
