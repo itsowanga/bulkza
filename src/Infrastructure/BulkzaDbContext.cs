@@ -38,6 +38,6 @@ public class BulkzaDbContext(DbContextOptions<BulkzaDbContext> options) : DbCont
     {
         return OutboxMessage.Create(domainEvent.GetType().AssemblyQualifiedName!,
                                     JsonSerializer.Serialize(domainEvent, domainEvent.GetType()),
-                                    DateTimeOffset.UtcNow);
+                                    DateTimeOffset.UtcNow, null);
     }
 }

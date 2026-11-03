@@ -10,7 +10,7 @@ public class OutboxMessage
     public int RetryCount {get; private set;}
     public DateTimeOffset? NextAttemptOn {get; private set;}
 
-    private OutboxMessage(string type, string content, DateTimeOffset occuredAt, DateTimeOffset processedAt)
+    private OutboxMessage(string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(type);
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
@@ -25,7 +25,7 @@ public class OutboxMessage
         RetryCount = 0;
         NextAttemptOn = null;
     }
-    public static OutboxMessage Create(string type, string content, DateTimeOffset occuredAt, DateTimeOffset processedAt) => new(type, content, occuredAt, processedAt);
+    public static OutboxMessage Create(string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt) => new(type, content, occuredAt, processedAt);
     public void MarkAsProcessed(DateTimeOffset time)
     {
         if (time == default) throw new ArgumentException($"{nameof(time)} cannot be the default value.", nameof(time));
