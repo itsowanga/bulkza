@@ -25,7 +25,7 @@ public class OutboxPublisher(ILogger<OutboxPublisher> logger,
                 var db = scope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
                 var bus = scope.ServiceProvider.GetRequiredService<IEventBus>();
 
-                var batch = await db.Outbox.Where(outbox => outbox.ProcessedAt == null)
+                var batch = await db.Outbox.Where(outbox => outbox.ProcessedAt == null && outbox.NextAttemptOn <= DateTimeOffset.UtcNow)
                                            .OrderBy(outbox => outbox.OccuredAt)
                                            .Take(_options.Value.BatchSize)
                                            .ToListAsync(stoppingToken);
@@ -38,12 +38,36 @@ public class OutboxPublisher(ILogger<OutboxPublisher> logger,
 
                 foreach (var message in batch)
                 {
-                    var evt = Deserialize(message);
-                    await bus.PublishAsync(evt, stoppingToken);
-                    message.MarkAsProcessed(DateTimeOffset.UtcNow);
-                }
+                    stoppingToken.ThrowIfCancellationRequested();
 
-                await db.SaveChangesAsync(stoppingToken);
+                    try
+                    {
+                        var evt = Deserialize(message);
+                        await bus.PublishAsync(evt, stoppingToken);
+                        message.MarkAsProcessed(DateTimeOffset.UtcNow);
+                        await db.SaveChangesAsync(stoppingToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }         
+                    catch (Exception err)
+                    {
+                        _logger.LogError(err, "Publish failed for outbox message {MessageId}", message.Id);
+                        using var failScope = _scopeFactory.CreateScope();
+                        var failDb = failScope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
+
+                        var failedMessage = await failDb.Outbox.FindAsync([message.Id], CancellationToken.None);
+
+                        if (failedMessage is not null)
+                        {
+                            failedMessage.RecordFailure(err.Message);
+                            await failDb.SaveChangesAsync(CancellationToken.None);
+                        }
+
+                        await Task.Delay(_options.Value.ErrorDelay, CancellationToken.None);
+                    }      
+                }
             }
             
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -53,8 +77,8 @@ public class OutboxPublisher(ILogger<OutboxPublisher> logger,
 
             catch (Exception err)
             {
-                _logger.LogError(err, "Outbox publisher iteration failed");
-                await Task.Delay(_options.Value.ErrorDelay, stoppingToken);
+                _logger.LogError(err, "Outbox publisher iteration failed");   
+                await Task.Delay(_options.Value.ErrorDelay, CancellationToken.None);
             }
         }
     }

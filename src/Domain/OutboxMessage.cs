@@ -10,12 +10,11 @@ public class OutboxMessage
     public int RetryCount {get; private set;}
     public DateTimeOffset? NextAttemptOn {get; private set;}
 
-    private OutboxMessage(string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt)
+    private OutboxMessage(string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(type);
         ArgumentException.ThrowIfNullOrWhiteSpace(content);
         if (occuredAt == default) throw new ArgumentException($"{nameof(occuredAt)} cannot be the default value.", nameof(occuredAt));
-        if (processedAt == default) throw new ArgumentException($"{nameof(processedAt)} cannot be the default value.", nameof(processedAt));
         Id = Guid.NewGuid();
         Type = type;
         Content = content;
@@ -25,7 +24,26 @@ public class OutboxMessage
         RetryCount = 0;
         NextAttemptOn = null;
     }
+
+    private OutboxMessage(Guid id, string type, string content, DateTimeOffset occuredAt,
+                          int retry, DateTimeOffset? nextAttempt, DateTimeOffset? processedAt, string? error)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(type);
+        ArgumentException.ThrowIfNullOrWhiteSpace(content);
+        if (occuredAt == default) throw new ArgumentException($"{nameof(occuredAt)} cannot be the default value.", nameof(occuredAt));
+        Id = id;
+        Type = type;
+        Content = content;
+        OccuredAt = occuredAt;
+        RetryCount = retry;
+        NextAttemptOn = nextAttempt;
+        ProcessedAt = processedAt;
+        Error = error;
+
+    }
     public static OutboxMessage Create(string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt) => new(type, content, occuredAt, processedAt);
+    public static OutboxMessage From(Guid id, string type, string content, DateTimeOffset occuredAt, DateTimeOffset? processedAt,
+                                     string? error, int retry, DateTimeOffset? nextAttempt) => new(id, type, content, occuredAt, retry, nextAttempt, processedAt, error);
     public void MarkAsProcessed(DateTimeOffset time)
     {
         if (time == default) throw new ArgumentException($"{nameof(time)} cannot be the default value.", nameof(time));
