@@ -3,6 +3,7 @@ using Domain;
 using Domain.ValueObjects;
 using Infrastructure.Converters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations;
@@ -31,7 +32,13 @@ public class BulkPoolConfiguration : IEntityTypeConfiguration<BulkPool>
             lines => JsonSerializer.Serialize(lines, jsonOptions),
             json => JsonSerializer.Deserialize<List<Participant>>(json, jsonOptions)!
         )
-        .HasField("_participants")
         .IsRequired();
+
+        builder.Property(pool => pool.Participants)
+            .Metadata.SetValueComparer(new ValueComparer<List<Participant>>(
+                (a, b) => a!.SequenceEqual(b!),
+                v => v.Aggregate(0, (hash, p) => HashCode.Combine(hash, p.GetHashCode())),
+                v => v.Select(p => p).ToList()  
+            ));
     }
 }

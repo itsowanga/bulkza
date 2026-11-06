@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Domain.Enums;
 using Domain.Events;
 using Domain.ValueObjects;
@@ -15,6 +16,15 @@ public class BulkPool
     public DateTimeOffset CreatedAt {get; private set;}
     private readonly List<Participant> _participants;
     private readonly List<IDomainEvent> _domainEvents;
+
+    private BulkPool()
+    {
+        CreatedAt = DateTimeOffset.UtcNow;
+        _participants = [];
+        CurrentQuantity = 0;
+        Status = BulkPoolStatus.Open;
+        _domainEvents = [];
+    }
     public BulkPool( PoolId poolId,
                      ProductId productId,
                      Quantity minimumQuantity,
