@@ -1,6 +1,8 @@
 # BulkZA
 
-A bulk-buying platform where multiple merchants combine their orders to unlock volume discounts, pay individually, and receive goods grouped for delivery.
+A bulk-buying platform where merchants pool their orders to reach volume discounts. Each merchant pays individually.
+
+This README describes what the code does today. Planned work is listed under [Roadmap](#roadmap).
 
 ---
 
@@ -9,87 +11,72 @@ A bulk-buying platform where multiple merchants combine their orders to unlock v
 1. [Problem](#problem)
 2. [Solution](#solution)
 3. [Architecture](#architecture)
-4. [Core patterns](#core-patterns)
-5. [Technologies](#technologies)
-6. [Project structure](#project-structure)
-7. [Domain model](#domain-model)
-8. [BulkPool state machine](#bulkpool-state-machine)
-9. [Pricing](#pricing)
-10. [API](#api)
-11. [Messaging](#messaging)
-12. [Local setup](#local-setup)
-13. [Configuration](#configuration)
-14. [Testing](#testing)
-15. [CI](#ci)
-16. [Azure deployment](#azure-deployment)
-17. [Threat model](#threat-model)
-18. [ADRs](#adrs)
-19. [Scope](#scope)
+4. [Technologies](#technologies)
+5. [Project structure](#project-structure)
+6. [Domain model](#domain-model)
+7. [BulkPool state machine](#bulkpool-state-machine)
+8. [Pricing](#pricing)
+9. [API](#api)
+10. [Transactional outbox](#transactional-outbox)
+11. [Local setup](#local-setup)
+12. [Configuration](#configuration)
+13. [Testing](#testing)
+14. [Roadmap](#roadmap)
 
 ---
 
 ## Problem
 
-Small merchants in South Africa often can't reach the order volumes needed to qualify for wholesale pricing. BulkZA lets them pool their demand: when enough merchants commit to a product, the group crosses a pricing threshold and everyone benefits from the lower tier.
+Small merchants in South Africa often can't order enough to qualify for wholesale pricing. BulkZA lets them pool demand on a product. When the pool is big enough, everyone gets the lower price.
 
 ## Solution
 
-- Merchants browse a product catalog and add items to a cart.
-- Merchants join or create **bulk pools** for a specific product.
-- When a pool reaches its minimum quantity and merchant count, it locks and finalizes.
-- Each merchant receives an individual **order** priced at the achieved volume tier.
-- Payments are collected per merchant; fulfillment follows.
+- Merchants register, log in, and browse active products.
+- A merchant creates a bulk pool for a product, or joins an open one.
+- When a pool reaches its minimum quantity and minimum merchant count, it moves to `ThresholdMet`.
+- A threshold-met pool can be locked, then finalised.
+- Each merchant has an individual order with its own payment, shipment, and delivery steps.
 
 ---
 
 ## Architecture
 
-The solution follows a layered architecture with dependencies pointing inward:
+Dependencies point inward:
 
 ```
-Api / Worker
-     ↓
+Api, Worker
+    ↓
 Application
-     ↓
+    ↓
 Domain
 
-Infrastructure
-     ↓
-Application
-     ↓
-Domain
+Infrastructure → Application → Domain
 ```
 
 | Layer | Responsibility |
 |-------|----------------|
-| **Domain** | Entities, value objects, aggregates, `BulkPool` state machine, pricing rules. No infrastructure dependencies. |
-| **Application** | Use cases, orchestration, interfaces (`IPricingStrategy`, `IPaymentGateway`, repository abstractions). |
-| **Infrastructure** | EF Core + SQL Server, Service Bus, outbox publisher, mocked payment gateway. |
-| **Api** | ASP.NET Core Web API (auth, merchants, products, carts, pools, orders). |
-| **Worker** | Background consumers (billing worker with idempotency, retries, dead-letter handling). |
+| **Domain** | Entities, value objects, the `BulkPool` state machine, domain events, the pricing strategy. No infrastructure dependencies. |
+| **Application** | One handler class per use case (command or query), plus interfaces for repositories, the unit of work, JWT, password hashing, the payment gateway, and the event bus. |
+| **Infrastructure** | EF Core with SQL Server, repositories, JWT provider, BCrypt password hasher, mock payment gateway, outbox persistence. |
+| **Api** | ASP.NET Core controllers, JWT bearer authentication, global exception handler. |
+| **Worker** | .NET Generic Host with a background service that publishes outbox messages. |
 
----
-
-## Core patterns
-
-- **Transactional Outbox**: domain events written atomically with business data, then published to Service Bus by a background publisher.
-- **Idempotent consumers**: duplicate Service Bus messages are ignored via a `ProcessedMessage` table.
-- **Optimistic concurrency**: `rowversion` on `BulkPool` prevents race conditions during concurrent joins.
-- **State machine**: `Draft → Open → ThresholdMet → Locked → Finalized`, with `Expired` and `Cancelled` as terminal alternatives.
+Handlers are plain scoped classes. There is no mediator library.
 
 ---
 
 ## Technologies
 
-- .NET 10 (C# latest)
-- ASP.NET Core Web API
-- Entity Framework Core 10 + SQL Server
-- Azure Service Bus
-- Serilog + OpenTelemetry
-- Docker / Docker Compose
-- xUnit + FluentAssertions + Testcontainers
-- GitHub Actions (build + test)
-- Terraform (Azure infrastructure)
+- .NET 10, C# latest, nullable reference types on
+- ASP.NET Core Web API with controllers
+- Entity Framework Core 10 with SQL Server
+- JWT bearer authentication
+- BCrypt.Net-Next for password hashing
+- libphonenumber-csharp for phone number validation
+- Docker Compose (SQL Server 2025 Developer)
+- xUnit, FluentAssertions, Testcontainers (SQL Server), Respawn, `Microsoft.AspNetCore.Mvc.Testing`
+
+Package versions are centralised in `Directory.Packages.props`. Build output goes to `build/`.
 
 ---
 
@@ -105,9 +92,9 @@ src/
 
 tests/
     Domain.Tests/
-    Application.Tests/
-    Integration.Tests/
     Api.Tests/
+    Application.Tests/     (placeholder)
+    Integration.Tests/     (placeholder)
 ```
 
 ---
@@ -116,21 +103,39 @@ tests/
 
 ### Value objects
 
-- `MerchantId`, `ProductId`, `PoolId`, `OrderId`, `CartId`
-- `Address`, `PhoneNumber`
+- Identifiers: `MerchantId`, `ProductId`, `PoolId`, `OrderId`, `CartId`, `EventId`
+- `Address`, `PhoneNumber`, `PasswordHash`
 - `Money`, `Quantity`
+- `CartItem`, `OrderLine`, `Participant`
+- `DiscountTier` (minimum quantity and discount percentage)
 
-Value objects are immutable, validate their own invariants, and use value equality.
+Value objects validate their own invariants.
 
-### Entities / aggregates
+### Entities and aggregates
 
-- `Merchant`
-- `Product`
-- `BulkPool` (aggregate root)
-- `Cart` + `CartItem`
-- `Order` + `OrderLine`
+| Type | Notes |
+|------|-------|
+| `Merchant` | Has a role (`Merchant`, `Wholesaler`) and a status (`Pending`, `Active`, `Suspended`). |
+| `Product` | SKU, name, optional description, category, unit of measure, base price, active flag. |
+| `BulkPool` | Aggregate root. Holds participants and raises domain events. |
+| `Cart` | Holds `CartItem` values. |
+| `Order` | Holds `OrderLine` values, a payment id, and a refund id. |
+| `OutboxMessage` | Persisted integration event awaiting publication. |
+
+Product categories: `MaizeMeal`, `CookingOil`, `Rice`, `Sugar`, `SoftDrinks`, `Flour`.
+Units of measure: `Each`, `Kilogram`, `Litre`, `Box`, `Bag`.
+
+### Order status
+
+```
+Pending → Paid → Shipped → Delivered
+```
+
+An order can be cancelled from `Pending` or `Paid`. Cancelling requires a refund id.
 
 ### Domain events
+
+Raised by `BulkPool`:
 
 - `MerchantJoinedPool`
 - `MerchantLeftPool`
@@ -138,143 +143,125 @@ Value objects are immutable, validate their own invariants, and use value equali
 - `PoolLocked`
 - `PoolFinalized`
 - `PoolExpired`
+- `PoolCancelled`
 
 ---
 
 ## BulkPool state machine
 
-```
-Draft
-  ↓
-Open
-  ↓
-ThresholdMet
-  ↓
-Locked
-  ↓
-Finalized
-```
-
-Terminal alternatives:
+A new pool starts in `Open`.
 
 ```
-Expired
-Cancelled
+Open → ThresholdMet → Locked → Finalized
 ```
 
-Illegal transitions (examples):
+Terminal alternatives: `Expired` and `Cancelled`.
 
-- `Finalized → Open`
-- `Expired → Open`
-- `Cancelled → Join`
-- `Locked → AddQuantity`
+| Method | Allowed from | Effect |
+|--------|--------------|--------|
+| `Join` | `Open`, before the deadline | Adds the merchant and quantity. Moves to `ThresholdMet` when both thresholds are met. A merchant can join only once. |
+| `Leave` | `Open`, `ThresholdMet`, before the deadline | Removes the merchant. Returns to `Open` if a threshold is no longer met. |
+| `Lock` | `ThresholdMet` | Moves to `Locked`. |
+| `Finalise` | `Locked` | Moves to `Finalized`. |
+| `Expire` | `Open`, `ThresholdMet`, after the deadline | Moves to `Expired`. |
+| `Cancel` | `Open`, `ThresholdMet` | Moves to `Cancelled`. |
 
-State changes go through domain methods (`Join`, `Leave`, `Lock`, `Finalize`, `Expire`), never by setting a status property.
+Invalid transitions throw `InvalidOperationException`. Status has a private setter, so changes only happen through these methods.
+
+Creation rules: the deadline must be in the future and the minimum merchant count must be at least one.
 
 ---
 
 ## Pricing
 
-One strategy for v1, behind an interface so more can be added later.
+`IPricingStrategy` has one implementation, `VolumePricingStrategy`. It takes a list of `DiscountTier` values. For a quantity, it applies the highest discount percentage whose minimum quantity is met, then returns the discounted unit price as `Money`.
+
+The strategy is a domain class with unit tests. No handler uses it yet, and it is not registered in dependency injection.
+
+### Relationship with bulk pools and orders
+
+Today the three parts are separate:
+
+- `BulkPool` tracks quantity, participants, thresholds, and the deadline. It has no price and no reference to a pricing strategy.
+- `Order` takes `OrderLine` values that already carry a `UnitPrice`. The caller supplies that price. Nothing calculates it.
+- `FinalisePoolHandler` only finalises the pool and saves. It does not create orders.
+- `CreateOrderHandler` is registered but has no caller, so the API cannot create orders yet.
+
+The intended design connects them when a pool finalises:
 
 ```
-IPricingStrategy
-    ↓
-VolumePricingStrategy
+Pool finalises
+      ↓
+CurrentQuantity (the pool total) and the product BasePrice go into CalculateUnitPrice
+      ↓
+The resulting unit price applies to every participant
+      ↓
+One Order per Participant, with an OrderLine of (ProductId, participant quantity, unit price)
 ```
 
-Example tiers:
+The tier comes from the pool total, not from each merchant's own quantity. That is what gives small merchants access to wholesale pricing.
 
-| Quantity   | Unit price |
-|------------|-----------|
-| 1–9        | R100      |
-| 10–49      | R95       |
-| 50–99      | R90       |
-| 100+       | R85       |
+Work needed to build this:
 
-Rules:
-
-- Use `decimal` for all money.
-- Round with `MidpointRounding` explicitly.
-- Currency is ZAR.
-- Pricing is deterministic and pure.
-- Test every boundary: 0, 1, 9, 10, 49, 50, 99, 100, and invalid/large quantities.
+1. Supply real discount tiers, from configuration or stored on `Product`, and register the strategy.
+2. Give `FinalisePoolHandler` the product base price, the strategy, and order creation.
+3. Create the orders in the same transaction as the pool change.
 
 ---
 
 ## API
 
-Base groups:
+All routes sit under `/api`. Every route requires a bearer token except register and login. Default local URLs are `http://localhost:5132` and `https://localhost:7224`. Sample requests are in `src/Api/Api.http`.
 
-```
-/merchants
-/products
-/carts
-/pools
-/pools/{id}/join
-/pools/{id}/leave
-/orders
-/payments
-```
+| Controller | Routes |
+|------------|--------|
+| `merchants` | `POST register`, `POST login` |
+| `products` | `GET browse`, `GET search/name`, `GET search/sku` |
+| `carts` | `GET`, `POST items`, `PUT items/{productId}`, `DELETE items/{productId}`, `DELETE clear` |
+| `bulkpools` | `POST`, `GET mine`, `POST {id}/join`, `POST {id}/leave`, `POST {id}/lock`, `POST {id}/finalise`, `POST {id}/expire`, `POST {id}/cancel` |
+| `orders` | `GET mine`, `POST {id}/pay`, `POST {id}/cancel`, `POST {id}/ship`, `POST {id}/deliver` |
 
 Conventions:
 
-- Request and response DTOs (never expose domain entities).
-- RFC 7807 `ProblemDetails` for all errors.
-- Consistent status codes: 200, 201, 400, 401, 403, 404, 409, 500.
-- Auth via JWT bearer tokens.
-- Merchant identity comes from claims, never from the request body.
+- Controllers use request and response DTOs, not domain entities.
+- Errors return RFC 7807 `ProblemDetails` through `GlobalExceptionHandler`.
+- The merchant id comes from JWT claims, not the request body.
+- Exception mapping: `ArgumentException` and `InvalidOperationException` return 400, `UnauthorizedAccessException` returns 401, `KeyNotFoundException` returns 404, anything else returns 500.
 
-Middleware order:
+Middleware order: exception handler, authentication, authorization, controllers.
 
-1. Exception handling
-2. Correlation ID
-3. Authentication
-4. Authorization
-5. Request logging
+Application handlers exist for merchant updates (name, phone number, address, status), product management (create, activate, deactivate, update price, category, description, unit of measure), and order creation. Not every handler has a controller route yet.
+
+Payments go through `IPaymentGateway`. The only implementation is `MockPaymentGateway`, which always succeeds.
 
 ---
 
-## Messaging
+## Transactional outbox
 
-Flow:
+`BulkzaDbContext.SaveChangesAsync` collects the domain events from every tracked `BulkPool`. It writes them as `OutboxMessage` rows in the same save, then clears the events from the aggregate.
 
 ```
-Business transaction
-      ↓
-Database changes + Outbox event
-      ↓
-COMMIT
-      ↓
-Background publisher (Worker)
-      ↓
-Azure Service Bus
-      ↓
-Billing worker (idempotent)
+Handler changes a BulkPool
+        ↓
+SaveChangesAsync writes the pool and the outbox rows in one transaction
+        ↓
+OutboxPublisher (Worker) polls for unprocessed rows
+        ↓
+IEventBus.PublishAsync
+        ↓
+Row marked as processed
 ```
 
-Outbox message fields:
+`OutboxMessage` fields: `Id`, `Type` (assembly-qualified type name), `Content` (JSON), `OccuredAt`, `ProcessedAt`, `Error`, `RetryCount`, `NextAttemptOn`.
 
-- `Id`
-- `Type`
-- `Payload`
-- `OccurredAt`
-- `ProcessedAt`
-- `Attempts`
-- `Error`
+Publisher behaviour:
 
-Consumer idempotency:
+- Polls for rows where `ProcessedAt` is null and `NextAttemptOn` is null or due, oldest first, up to `BatchSize` rows.
+- Sleeps for `PollInterval` when there is nothing to publish.
+- On a publish failure, calls `RecordFailure`, which increments `RetryCount` and sets `NextAttemptOn` using exponential backoff from a 5 second base, capped at 60 seconds. It then waits `ErrorDelay`.
+- There is no maximum retry count or dead-letter handling yet. Failed rows keep retrying.
 
-- Check `MessageId` against `ProcessedMessage`.
-- If already processed → ignore.
-- Otherwise process, save `MessageId` in the same transaction.
-- Never assume exactly-once delivery; design for at-least-once.
-
-Retries and DLQ:
-
-- Exponential backoff for transient failures.
-- Max retry attempts, then dead-letter.
-- Do not retry permanent failures.
+The Worker registers `InMemoryEventBus` as `IEventBus`. This is a development stand-in. Events are not delivered to an external broker.
 
 ---
 
@@ -284,19 +271,34 @@ Retries and DLQ:
 
 - .NET 10 SDK
 - Docker Desktop
-- SQL Server (via Docker)
-- Azure Service Bus namespace (or emulator where supported)
 
-### Run locally
+### Run
 
 ```bash
 git clone <repo-url>
-cd BulkZA
+cd bulkza
+export MSSQL_SA_PASSWORD='<choose a strong password>'
+docker compose up -d
 dotnet restore
 dotnet build
-docker compose up -d
 dotnet run --project src/Api
 ```
+
+Run the outbox publisher in a second terminal:
+
+```bash
+dotnet run --project src/Worker
+```
+
+`docker-compose.yml` starts a single SQL Server 2025 Developer container named `bulkza` on port 1433, with a named volume and a health check. It reads the SA password from `MSSQL_SA_PASSWORD`.
+
+The Api does not apply migrations on startup. Apply them before the first run:
+
+```bash
+dotnet ef database update --project src/Infrastructure --startup-project src/Api
+```
+
+The `dotnet-ef` tool is pinned in `dotnet-tools.json`. Run `dotnet tool restore` first.
 
 ### Run tests
 
@@ -304,123 +306,49 @@ dotnet run --project src/Api
 dotnet test
 ```
 
-Integration tests use Testcontainers and start their own SQL Server instance.
+Api tests start their own SQL Server container, so Docker must be running.
 
 ---
 
 ## Configuration
 
-Loaded from `appsettings.json`, environment variables, and (locally) user secrets.
+Settings load from `appsettings.json`, environment-specific files, and environment variables.
 
-Required settings (never commit real values):
+| Key | Used by | Purpose |
+|-----|---------|---------|
+| `ConnectionStrings:DefaultConnection` | Api, Worker | SQL Server connection string. |
+| `Jwt:Secret` | Api | Signing key for tokens. |
+| `Jwt:Issuer` | Api | Token issuer. Currently `BulkZa`. |
+| `Jwt:Audience` | Api | Token audience. Currently `BulkZaClients`. |
+| `Jwt:ExpirationInHours` | Api | Token lifetime. Currently 24. |
+| `OutboxPublisher:BatchSize` | Worker | Rows per poll. Default 50. |
+| `OutboxPublisher:PollInterval` | Worker | Idle wait. Default 2 seconds. |
+| `OutboxPublisher:ErrorDelay` | Worker | Wait after a failure. Default 5 seconds. |
 
-```
-ConnectionStrings:SqlServer
-ServiceBus:ConnectionString
-Jwt:Issuer
-Jwt:Audience
-Jwt:SigningKey
-```
+Do not commit real connection strings or signing keys. Use user secrets or environment variables for local values, for example `ConnectionStrings__DefaultConnection` and `Jwt__Secret`.
 
 ---
 
 ## Testing
 
-- **Unit tests**: value objects, entities, aggregates, state machine, pricing.
-- **Integration tests**: API endpoints, auth, persistence, transactions, concurrency, outbox, message processing.
-- **Test builders**: `MerchantBuilder`, `ProductBuilder`, `PoolBuilder`, `OrderBuilder`.
-- **Testcontainers**: real SQL Server instance per test run.
-- **Concurrency test**: simultaneous pool joins, verify final quantity and no duplicates.
-- **Messaging tests**: success, duplicate, retry, failure, dead-letter.
+- **Domain.Tests**: value objects, `Merchant`, `Product`, `Cart`, `Order`, `BulkPool`, and `VolumePricingStrategy`. Test builders exist for address, bulk pool, cart, merchant, order, and product.
+- **Api.Tests**: end-to-end tests through `WebApplicationFactory`. `ApiSmokeTestFixture` starts a SQL Server Testcontainer, applies migrations, and resets data between tests with Respawn. Covers auth endpoints, products, and bulk pools.
+- **Application.Tests** and **Integration.Tests**: placeholder projects with no real tests yet.
 
 ---
 
-## CI
+## Roadmap
 
-GitHub Actions runs on every push:
+Not built yet:
 
-1. Restore
-2. Build
-3. Unit tests
-4. Integration tests
-
-Out of scope for v1 CI: security scanning, Docker build/publish, vulnerability gates.
-
----
-
-## Azure deployment
-
-Infrastructure provisioned with **Terraform**:
-
-- App Service or Container App (API)
-- Azure SQL
-- Azure Service Bus
-- Supporting resources (Key Vault, Application Insights)
-
-Secrets are never hard-coded. Use Key Vault and managed identity.
-
----
-
-## Threat model
-
-| Threat | Mitigation |
-|--------|-----------|
-| IDOR (accessing another merchant's data) | Derive merchant identity from JWT claims; authorize every resource access. |
-| Injection | Parameterized queries via EF Core; validate all input. |
-| Credential theft | Password hashing; no plaintext storage. |
-| Token theft | Short-lived JWTs; HTTPS only. |
-| Replay | Idempotency keys on payments; `ProcessedMessage` on consumers. |
-| Message tampering | Service Bus auth; validate payloads on receipt. |
-| Duplicate messages | Idempotent consumers. |
-| Secret leakage | User secrets locally; Key Vault in Azure; never log secrets. |
-| Excessive requests | Rate limiting at the API edge. |
-
----
-
-## ADRs
-
-| ADR | Topic |
-|-----|-------|
-| ADR-001 | Domain architecture |
-| ADR-002 | BulkPool state machine |
-| ADR-003 | Pricing strategy pattern |
-| ADR-004 | SQL isolation level |
-| ADR-005 | Optimistic concurrency |
-| ADR-006 | Transactional Outbox |
-| ADR-007 | Service Bus |
-| ADR-008 | Terraform vs Bicep |
-| ADR-009 | Result vs exceptions |
-
-Each ADR contains: Context, Decision, Alternatives, Consequences.
-
----
-
-## Scope
-
-### In scope for v1
-
-- Domain: `BulkPool` state machine, one pricing strategy, core aggregates and value objects
-- API: auth, merchants, products, carts, bulk pools, orders
-- SQL Server + EF Core as transactional source of truth, optimistic concurrency on `BulkPool`, transactions on critical operations
-- Transactional Outbox + background publisher
-- One Service Bus worker (billing), idempotent, with retries and DLQ
-- Mocked payment gateway
-- Serilog + OpenTelemetry across API, outbox, and the worker
-- Docker Compose (SQL Server, app containers)
-- GitHub Actions: build + test only
-- Terraform: core Azure resources (App Service/Container App, SQL, Service Bus)
-
-### Deferred to v2
-
-- Cosmos DB geospatial clustering
-- SMS mock
-- Additional workers (logistics, notifications)
-- App Insights dashboards and alerting
-- Security scanning and packaging in CI
-- Driver / Wholesaler / Admin experiences
-- Real payment and SMS providers
-- Full ASP.NET Identity, OAuth/OIDC, 2FA
-- Kubernetes, AKS, Helm
-- CQRS, MediatR-heavy architecture, event sourcing, saga
-- Kafka, gRPC, GraphQL, SignalR
-- Multi-region, RLS, complex accounting
+- Optimistic concurrency (`rowversion`) on `BulkPool`
+- Real Azure Service Bus integration, a billing worker, idempotent consumers, and dead-lettering
+- Wiring `VolumePricingStrategy` into pool and order flows, and creating orders when a pool finalises
+- Automatic pool expiry and locking
+- Structured logging and tracing (Serilog, OpenTelemetry)
+- Correlation ID middleware and rate limiting
+- CI pipeline (GitHub Actions)
+- Infrastructure as code (Terraform) and Azure deployment
+- Real payment provider
+- Architecture decision records
+- Application and integration test coverage

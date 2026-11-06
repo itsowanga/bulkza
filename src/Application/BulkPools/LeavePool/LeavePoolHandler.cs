@@ -13,7 +13,6 @@ public class LeavePoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
     {
         BulkPool pool = await _bulkPool.GetByIdAsync(cmd.PoolId, ct)  ?? throw new KeyNotFoundException("Pool does not exist.");
         pool.Leave(cmd.MerchantId);
-        _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
         return new LeavePoolResult(pool.Status, pool.CurrentQuantity);
     }

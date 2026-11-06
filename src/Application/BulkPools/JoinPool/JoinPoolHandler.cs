@@ -12,7 +12,6 @@ public class JoinPoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
     {
         BulkPool pool = await _bulkPool.GetByIdAsync(cmd.PoolId, ct) ?? throw new KeyNotFoundException("Pool does not exist.");
         pool.Join(cmd.MerchantId, cmd.Quantity);
-        _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
         return new JoinPoolResult(pool.Status, pool.CurrentQuantity);
     }

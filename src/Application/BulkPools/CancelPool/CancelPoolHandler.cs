@@ -11,7 +11,6 @@ public class CancelPoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
     {
         BulkPool pool = await _bulkPool.GetByIdAsync(cmd.PoolId, ct) ?? throw new KeyNotFoundException("Pool does not exist.");
         pool.Cancel();
-        _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
         return new CancelPoolResult(pool.PoolId.Value, pool.Status);
     }

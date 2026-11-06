@@ -13,7 +13,6 @@ public class ExpirePoolHandler(IBulkPoolRepository bulkPool, IUnitOfWork uow)
     {
         BulkPool pool = await _bulkPool.GetByIdAsync(cmd.PoolId, ct) ?? throw new KeyNotFoundException("Pool does not exist.");
         pool.Expire();
-        _bulkPool.Update(pool);
         await _uow.SaveChangesAsync(ct);
         return new ExpirePoolResult(pool.PoolId.Value, pool.Status);
     }

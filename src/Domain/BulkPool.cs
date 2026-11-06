@@ -105,6 +105,7 @@ public class BulkPool
     {
         if (Status != BulkPoolStatus.Locked) throw new InvalidOperationException("Pool can only be finalized once it has been locked.");
         Status = BulkPoolStatus.Finalized;
+        
         _domainEvents.Add(new PoolFinalized(EventId.New(), DateTimeOffset.UtcNow, PoolId));
     }
     public void Expire()

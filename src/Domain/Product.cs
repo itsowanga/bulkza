@@ -12,6 +12,8 @@ public class Product
     public ProductCategory Category {get; private set;}
     public UnitOfMeasure UnitOfMeasure {get; private set;}
     public Money BasePrice {get; private set;}
+    private readonly List<DiscountTier> _discountTiers = [];
+    public IReadOnlyList<DiscountTier> DiscountTiers => _discountTiers;
     public bool IsActive {get; private set;}
 
 
@@ -25,13 +27,14 @@ public class Product
                     bool isActive)
     {
 
-        if (productId == default) throw new ArgumentException($"{nameof(productId)} cannot be the default value.");
-        if (!Enum.IsDefined(category)) throw new ArgumentException($"{nameof(category)} is invalid.", nameof(Category));
+        if (productId == default) throw new ArgumentException($"{nameof(productId)} cannot be the default value.", nameof(productId));
+        if (!Enum.IsDefined(category)) throw new ArgumentException($"{nameof(category)} is invalid.", nameof(category));
         if (!Enum.IsDefined(unitOfMeasure)) throw new ArgumentException($"{nameof(unitOfMeasure)} is invalid.", nameof(unitOfMeasure));
         
         ValidateOptional(description);
         ValidateRequired(SKU, "SKU", 50);
         ValidateRequired(name, "Name", 100);
+        AddDiscountTiers(_discountTiers);
         ProductId = productId;
         Category = category;
         UnitOfMeasure = unitOfMeasure;
@@ -40,6 +43,8 @@ public class Product
         this.SKU = SKU;
         Name = name;
         Description = description;
+        
+
     }
     private static void ValidateOptional(string? description, int maxLength=500)
     {
@@ -54,6 +59,18 @@ public class Product
         if (value.Length > maxLength) throw new ArgumentException($"{name} cannot exceed {maxLength} characters.", nameof(value));
     }
 
+    private static void AddDiscountTiers(List<DiscountTier> tiers)
+    {
+        tiers.AddRange(
+        [
+            DiscountTier.Create(Quantity.Create(1), 0m),
+            DiscountTier.Create(Quantity.Create(50), 5m),
+            DiscountTier.Create(Quantity.Create(100), 10m),
+            DiscountTier.Create(Quantity.Create(250), 15m),
+            DiscountTier.Create(Quantity.Create(500), 20m),
+            DiscountTier.Create(Quantity.Create(1000), 25m)
+        ]);
+    }
     public void UpdateDescription(string? description)
     {
         ValidateOptional(description);

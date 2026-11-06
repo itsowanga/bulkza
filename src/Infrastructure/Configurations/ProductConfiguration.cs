@@ -1,6 +1,8 @@
 using System.Data.Common;
+using System.Text.Json;
 using Domain;
 using Domain.ValueObjects;
+using Infrastructure.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +24,15 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(product => product.BasePrice).HasConversion(money => money.Amount, value => Money.Create(value)).HasPrecision(18, 2).IsRequired();
         builder.Property(product => product.IsActive).IsRequired();
 
+        var jsonOptions = new JsonSerializerOptions();
+        jsonOptions.Converters.Add(new DiscountTierJsonConverter());
+        builder.Property(product => product.DiscountTiers)
+            .HasConversion(
+                tiers => JsonSerializer.Serialize(tiers, jsonOptions),
+                json => JsonSerializer.Deserialize<List<DiscountTier>>(json, jsonOptions)!
+            )
+            .HasField("_discountTiers")
+            .IsRequired();
 
 
 
