@@ -29,7 +29,10 @@ public class OrdersController ( ProcessPaymentHandler pay,
     [HttpPost("{id}/pay")]
     public async Task<IActionResult> Pay(Guid id, [FromBody] PayOrderRequest request, CancellationToken ct)
     {
-        ProcessPaymentCommand command = new(OrderId.Create((Guid)id), request.CardToken);
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        ProcessPaymentCommand command = new(OrderId.Create(id), MerchantId.Create((Guid)merchantId), request.CardToken);
         var result = await _pay.Handle(command, ct);
         return Ok(result);
     }
@@ -38,7 +41,10 @@ public class OrdersController ( ProcessPaymentHandler pay,
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
     {
-        CancelOrderCommand command = new(OrderId.Create((Guid)id));
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        CancelOrderCommand command = new(OrderId.Create(id), MerchantId.Create((Guid)merchantId));
         var result = await _cancel.Handle(command, ct);
         return Ok(result);
     }
@@ -47,7 +53,11 @@ public class OrdersController ( ProcessPaymentHandler pay,
     [HttpPost("{id}/ship")]
     public async Task<IActionResult> Ship(Guid id, CancellationToken ct)
     {
-        MarkAsShippedCommand command = new(OrderId.Create((Guid)id));
+
+        var merchantRole = User.GetMerchantRole();
+        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Unauthorized();
+        
+        MarkAsShippedCommand command = new(OrderId.Create(id));
         var result = await _ship.Handle(command, ct);
         return Ok(result);
     }
@@ -56,7 +66,10 @@ public class OrdersController ( ProcessPaymentHandler pay,
     [HttpPost("{id}/deliver")]
     public async Task<IActionResult> Deliver(Guid id, CancellationToken ct)
     {
-        MarkAsDeliveredCommand command = new(OrderId.Create((Guid)id));
+        var merchantRole = User.GetMerchantRole();
+        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Unauthorized();
+
+        MarkAsDeliveredCommand command = new(OrderId.Create(id));
         var result = await _deliver.Handle(command, ct);
         return Ok(result);
     }
@@ -72,4 +85,5 @@ public class OrdersController ( ProcessPaymentHandler pay,
         var result = await _findAll.Handle(query, ct);
         return Ok(result);
     }
+
 }

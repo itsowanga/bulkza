@@ -91,6 +91,9 @@ public class BulkPoolsController(CreatePoolHandler create,
     [HttpPost("{id}/lock")]
     public async Task<IActionResult> LockPool(Guid id, CancellationToken ct)
     {
+        var merchantRole = User.GetMerchantRole();
+        if (merchantRole != Domain.Enums.MerchantRole.Admin) return Forbid();
+
         LockPoolCommand command = new(PoolId.Create(id));
         var result = await _lock.Handle(command, ct);
         return Ok(result);
@@ -100,6 +103,9 @@ public class BulkPoolsController(CreatePoolHandler create,
     [HttpPost("{id}/finalise")]
     public async Task<IActionResult> FinalisePool(Guid id, CancellationToken ct)
     {
+        var merchantRole = User.GetMerchantRole();
+        if (merchantRole != Domain.Enums.MerchantRole.Admin) return Forbid();
+
         FinalisePoolCommand command = new(PoolId.Create(id));
         var result = await _finalise.Handle(command, ct);
         return Ok(result);
@@ -109,6 +115,9 @@ public class BulkPoolsController(CreatePoolHandler create,
     [HttpPost("{id}/expire")]
     public async Task<IActionResult> ExpirePool(Guid id, CancellationToken ct)
     {
+        var merchantRole = User.GetMerchantRole();
+        if (merchantRole != Domain.Enums.MerchantRole.Admin) return Forbid();
+
         ExpirePoolCommand command = new(PoolId.Create(id));
         var result = await _expire.Handle(command, ct);
         return Ok(result);
@@ -118,6 +127,9 @@ public class BulkPoolsController(CreatePoolHandler create,
     [HttpPost("{id}/cancel")]
     public async Task<IActionResult> CancelPool(Guid id, CancellationToken ct)
     {
+        var merchantRole = User.GetMerchantRole();
+        if (merchantRole != Domain.Enums.MerchantRole.Admin) return Forbid();
+
         CancelPoolCommand command = new(PoolId.Create(id));
         var result = await _cancel.Handle(command, ct);
         return Ok(result);

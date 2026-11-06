@@ -13,6 +13,7 @@ public class CancelOrderHandler(IOrderRepository order, IPaymentGateway payment,
     public async Task<CancelOrderResult> Handle(CancelOrderCommand cmd, CancellationToken ct)
     {
         Order order_ = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
+        if (cmd.MerchantId != order_.MerchantId) throw new UnauthorizedAccessException("Merchant is not authorized to cancel this order.");
         order_.Cancel(Guid.NewGuid());
         RefundResult result =  await _payment.RefundAsync(order_.RefundId, order_.TotalAmount, ct);
         if(result.Success)

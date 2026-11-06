@@ -25,7 +25,7 @@ public class OutboxPublisher(ILogger<OutboxPublisher> logger,
                 var db = scope.ServiceProvider.GetRequiredService<BulkzaDbContext>();
                 var bus = scope.ServiceProvider.GetRequiredService<IEventBus>();
 
-                var batch = await db.Outbox.Where(outbox => outbox.ProcessedAt == null && outbox.NextAttemptOn <= DateTimeOffset.UtcNow)
+                var batch = await db.Outbox.Where(outbox => outbox.ProcessedAt == null && (outbox.NextAttemptOn <= DateTimeOffset.UtcNow || outbox.NextAttemptOn == null))
                                            .OrderBy(outbox => outbox.OccuredAt)
                                            .Take(_options.Value.BatchSize)
                                            .ToListAsync(stoppingToken);

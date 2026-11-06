@@ -13,6 +13,7 @@ public class ProcessPaymentHandler(IPaymentGateway payment, IOrderRepository ord
     public async Task<ProcessPaymentResult> Handle(ProcessPaymentCommand cmd, CancellationToken ct)
     {
         Order order_ = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
+        if (order_.MerchantId != cmd.MerchantId) throw new UnauthorizedAccessException("Merchant is not allowed to pay this order.");
         PaymentResult paymentResult = await _payment.ChargeAsync(order_.TotalAmount, cmd.CardToken, ct);
         if(paymentResult.Success)
         {

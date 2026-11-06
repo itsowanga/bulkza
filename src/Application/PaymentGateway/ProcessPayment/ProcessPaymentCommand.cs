@@ -3,4 +3,4 @@ using Domain.ValueObjects;
 
 namespace Application.PaymentGateway.ProcessPayment;
 
-public record ProcessPaymentCommand(OrderId OrderId, string CardToken);
+public record ProcessPaymentCommand(OrderId OrderId, MerchantId MerchantId, string CardToken);

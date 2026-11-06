@@ -51,8 +51,14 @@ public class OutboxMessage
     } 
     public void RecordFailure(string error)
     { 
+        if(RetryCount == 20)
+        {
+            NextAttemptOn = DateTimeOffset.MaxValue;
+            return;
+        }
         ArgumentException.ThrowIfNullOrWhiteSpace(error);
 
+        Error = error;
         int baseDelay = 5;
         int maxDelay = 60;
         RetryCount+=1;

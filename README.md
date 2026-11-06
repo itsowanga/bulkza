@@ -256,10 +256,16 @@ Row marked as processed
 
 Publisher behaviour:
 
-- Polls for rows where `ProcessedAt` is null and `NextAttemptOn` is null or due, oldest first, up to `BatchSize` rows.
+- Polls for rows where `ProcessedAt` is null and `NextAttemptOn <= now`, oldest first, up to `BatchSize` rows.
 - Sleeps for `PollInterval` when there is nothing to publish.
-- On a publish failure, calls `RecordFailure`, which increments `RetryCount` and sets `NextAttemptOn` using exponential backoff from a 5 second base, capped at 60 seconds. It then waits `ErrorDelay`.
-- There is no maximum retry count or dead-letter handling yet. Failed rows keep retrying.
+- On a publish failure, calls `RecordFailure`, then waits `ErrorDelay`.
+
+Retry logic in `OutboxMessage.RecordFailure`:
+
+- Each failure increments `RetryCount` and sets `NextAttemptOn` using exponential backoff: `5 * 2^RetryCount` seconds, capped at 60. The delays are 10, 20, 40, then 60 seconds for every later attempt.
+- The retry limit is 20. Once `RetryCount` reaches 20, the next failure sets `NextAttemptOn` to `DateTimeOffset.MaxValue` and returns. The publisher never selects the row again, so it is parked and needs manual attention.
+- Parked rows stay in the `Outbox` table with `ProcessedAt` null. There is no dead-letter queue or alerting yet.
+- `RecordFailure` does not store the error text, so `Error` stays null.
 
 The Worker registers `InMemoryEventBus` as `IEventBus`. This is a development stand-in. Events are not delivered to an external broker.
 
@@ -342,7 +348,7 @@ Do not commit real connection strings or signing keys. Use user secrets or envir
 Not built yet:
 
 - Optimistic concurrency (`rowversion`) on `BulkPool`
-- Real Azure Service Bus integration, a billing worker, idempotent consumers, and dead-lettering
+- Real Azure Service Bus integration, a billing worker, idempotent consumers, and a dead-letter queue (parked outbox rows are the only stand-in today)
 - Wiring `VolumePricingStrategy` into pool and order flows, and creating orders when a pool finalises
 - Automatic pool expiry and locking
 - Structured logging and tracing (Serilog, OpenTelemetry)
