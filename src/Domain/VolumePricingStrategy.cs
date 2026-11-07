@@ -24,8 +24,8 @@ public class VolumePricingStrategy : IPricingStrategy
             }
         }
 
-        decimal newBasePrice = basePrice.Amount * ((100m - highestDiscount)/100);
-        return Money.Create(newBasePrice);
+        decimal discountedPrice = basePrice.Amount * ((100m - highestDiscount) / 100);
+        return Money.Create(Math.Round(discountedPrice, 2, MidpointRounding.AwayFromZero));
     }
 
 }

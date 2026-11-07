@@ -16,7 +16,7 @@ public class LoginMerchantHandler (IMerchantRepository merchant, IPasswordHasher
 
     public async Task<LoginMerchantResult> Handle(LoginMerchantCommand cmd, CancellationToken ct)
     {
-        var merchant = await _merchant.GetByPhoneNumberAsync(cmd.PhoneNumber, ct) ?? throw new AuthenticationException("Merchant does not exist.");
+        var merchant = await _merchant.GetByPhoneNumberAsync(cmd.PhoneNumber, ct) ?? throw new AuthenticationException("Invalid password or phone number.");
     
         if(merchant.Status != MerchantStatus.Active) throw new InvalidOperationException("Suspended merchant cannot login. Contact IT.");
         

@@ -14,7 +14,7 @@ public class OrderRepository(BulkzaDbContext db) : IOrderRepository
     public async Task<(IReadOnlyList<Order>, int)>  GetByMerchantIdAsync(MerchantId merchantId, int page, int pageSize, CancellationToken ct = default) 
     {
         int totalOrders =  await _db.Orders.Where(order => order.MerchantId == merchantId).CountAsync(ct);
-        IReadOnlyList<Order> orders = await _db.Orders.Where(order => order.MerchantId == merchantId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        IReadOnlyList<Order> orders = await _db.Orders.Where(order => order.MerchantId == merchantId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return (orders, totalOrders);
        
     }

@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.ValueObjects;
 using Domain;
+using Domain.Enums;
 
 namespace Application.Orders.CancelOrder;
 
@@ -12,16 +13,22 @@ public class CancelOrderHandler(IOrderRepository order, IPaymentGateway payment,
 
     public async Task<CancelOrderResult> Handle(CancelOrderCommand cmd, CancellationToken ct)
     {
-        Order order_ = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
-        if (cmd.MerchantId != order_.MerchantId) throw new UnauthorizedAccessException("Merchant is not authorized to cancel this order.");
-        order_.Cancel(Guid.NewGuid());
-        RefundResult result =  await _payment.RefundAsync(order_.RefundId, order_.TotalAmount, ct);
-        if(result.Success)
+        Order order = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
+        if (cmd.MerchantId != order.MerchantId) throw new UnauthorizedAccessException("Merchant is not authorized to cancel this order.");
+
+        if (order.Status != OrderStatus.Pending && order.Status != OrderStatus.Paid)
+            throw new InvalidOperationException("Order cannot be cancelled.");
+
+        if (order.Status == OrderStatus.Paid)
         {
-            _order.Update(order_);
-            await _uow.SaveChangesAsync(ct);
+            RefundResult refund = await _payment.RefundAsync(order.PaymentId, order.TotalAmount, ct);
+            if (!refund.Success) throw new InvalidOperationException($"Refund failed: {refund.ErrorMessage}");
         }
-        
-        return new(order_.OrderId.Value, order_.Status, order_.RefundId);
+
+        order.Cancel(Guid.NewGuid());
+        _order.Update(order);
+        await _uow.SaveChangesAsync(ct);
+
+        return new(order.OrderId.Value, order.Status, order.RefundId);
     }
 }

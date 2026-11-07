@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
             Status = status,
             Title = title,
-            Detail = exception.Message,
+            Detail = status >= 500 ? "An unexpected error occurred." : exception.Message,
             Instance = context.Request.Path
         };
 
@@ -37,6 +38,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         InvalidOperationException => (400, "Conflict"),
         UnauthorizedAccessException => (401, "Unauthorized"),
         KeyNotFoundException => (404, "Not Found"),
+        AuthenticationException => (401, "Unauthorized"),
         _ => (500, "Internal Server Error")
     };
 }

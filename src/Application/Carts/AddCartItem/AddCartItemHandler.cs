@@ -26,7 +26,6 @@ public class AddCartItemHandler(ICartRepository cart, IUnitOfWork uow)
         }
         
         var dtos = cart.CartItems.Select(item => new CartItemDto(item.ProductId.Value, item.Quantity.Value)).ToList();
-        _cart.Update(cart);
         await _uow.SaveChangesAsync(ct);
         return new(cart.CartId.Value, cart.MerchantId.Value, dtos, cart.GetTotalQuantity());
     } 

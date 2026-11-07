@@ -12,16 +12,17 @@ public class ProcessPaymentHandler(IPaymentGateway payment, IOrderRepository ord
 
     public async Task<ProcessPaymentResult> Handle(ProcessPaymentCommand cmd, CancellationToken ct)
     {
-        Order order_ = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
-        if (order_.MerchantId != cmd.MerchantId) throw new UnauthorizedAccessException("Merchant is not allowed to pay this order.");
-        PaymentResult paymentResult = await _payment.ChargeAsync(order_.TotalAmount, cmd.CardToken, ct);
+        Order order = await _order.GetOrderByIdAsync(cmd.OrderId, ct) ?? throw new KeyNotFoundException("Order is not found.");
+        if (order.MerchantId != cmd.MerchantId) throw new UnauthorizedAccessException("Merchant is not allowed to pay this order.");
+        if (order.Status != Domain.Enums.OrderStatus.Pending) throw new InvalidOperationException("Cannot pay for order not pending.");
+        PaymentResult paymentResult = await _payment.ChargeAsync(order.TotalAmount, cmd.CardToken, ct);
         if(paymentResult.Success)
         {
-            order_.MarkAsPaid(paymentResult.TransactionId);
-            _order.Update(order_);
+            order.MarkAsPaid(paymentResult.TransactionId);
+            _order.Update(order);
             await _uow.SaveChangesAsync(ct);
         }
         
-        return new(order_.Status, order_.PaymentId);
+        return new(order.Status, order.PaymentId);
     }
 }
