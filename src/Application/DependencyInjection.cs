@@ -1,3 +1,6 @@
+using Application.Admin.GetSummary;
+using Application.Admin.ListOrders;
+using Application.Admin.ListPools;
 using Application.BulkPools.CancelPool;
 using Application.BulkPools.CreatePool;
 using Application.BulkPools.ExpirePool;
@@ -44,6 +47,11 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // Admin handlers
+        services.AddScoped<GetSummaryHandler>();
+        services.AddScoped<ListOrdersHandler>();
+        services.AddScoped<ListPoolsHandler>();
+
         // BulkPool handlers
         services.AddScoped<CancelPoolHandler>();
         services.AddScoped<CreatePoolHandler>();

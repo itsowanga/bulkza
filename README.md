@@ -224,6 +224,7 @@ All routes sit under `/api`. Every route requires a bearer token except register
 | `carts` | `GET`, `POST items`, `PUT items/{productId}`, `DELETE items/{productId}`, `DELETE clear` |
 | `bulkpools` | `POST`, `GET {id}`, `GET mine`, `GET open?productId=`, `POST {id}/join`, `POST {id}/leave`, `POST {id}/lock`, `POST {id}/finalise`, `POST {id}/expire`, `POST {id}/cancel` |
 | `orders` | `GET mine`, `POST {id}/pay`, `POST {id}/cancel`, `POST {id}/ship`, `POST {id}/deliver` |
+| `admin` | `GET pools`, `GET orders`, `GET summary` (Admin only) |
 
 Conventions:
 
@@ -243,6 +244,10 @@ Every merchant has a role: `Merchant`, `Wholesaler` or `Admin`. The role is a cl
 - Pool `lock`, `finalise`, `expire` and `cancel` need the `Admin` role. Other merchants get 403.
 - Order `ship` and `deliver` need the `Admin` role.
 - Order `pay` and `cancel` work only on the caller's own orders.
+
+- `GET /api/admin/pools`, `/orders` and `/summary` need the `Admin` role. Anyone else gets 403, and a missing token gets 401.
+
+The admin routes list pools and orders across every merchant, optionally filtered with `?status=`, and `summary` counts both by status. Shipping and delivering an order, and locking or finalising a pool, use the existing action routes listed above.
 
 Registration always creates a plain `Merchant`. There is no endpoint to promote a merchant.
 
@@ -392,8 +397,10 @@ The Worker needs no Azure Service Bus settings. It logs each published event thr
 `docker-compose.yml` defines three services: `sqlserver`, `api` and `worker`. After the setup script has created the secrets, build and start the whole stack:
 
 ```bash
-docker compose --env-file ~/.bulkza/sql.env up -d --build --wait
+docker compose --env-file "$HOME/.bulkza/sql.env" up -d --build --wait
 ```
+
+Run the `docker compose` commands from the repository root, where `docker-compose.yml` is. Write the env file path as `"$HOME/.bulkza/sql.env"`. PowerShell does not expand a bare `~` for programs like `docker`, so `~/.bulkza/sql.env` would be read as a folder named `~` in the current directory.
 
 | Service | Container | Address |
 |---------|-----------|---------|
@@ -406,8 +413,8 @@ docker compose --env-file ~/.bulkza/sql.env up -d --build --wait
 - All ports are bound to `127.0.0.1`. Change the Api port with `BULKZA_API_PORT` in the env file.
 - To create the first admin, add `ADMIN_SEED_PHONE` and `ADMIN_SEED_PASSWORD` to the env file and recreate the `api` container. Leave them out to skip it.
 - The containers restart automatically (`unless-stopped`), including after a reboot.
-- Rebuild after code changes with the same command. Follow logs with `docker compose --env-file ~/.bulkza/sql.env logs -f api worker`.
-- Stop everything with `docker compose --env-file ~/.bulkza/sql.env down`. The database volume is kept. Add `-v` only if you want to delete the data.
+- Rebuild after code changes with the same command. Follow logs with `docker compose --env-file "$HOME/.bulkza/sql.env" logs -f api worker`.
+- Stop everything with `docker compose --env-file "$HOME/.bulkza/sql.env" down`. The database volume is kept. Add `-v` only if you want to delete the data.
 
 The compose file has no default password and refuses to start without `MSSQL_SA_PASSWORD`, `BULKZA_APP_PASSWORD` and `JWT_SECRET`. `.env.example` shows the variable names. Run migrations with the setup script or the `dotnet ef` command below, since neither app applies them on startup.
 

@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { Field } from '@/components/Field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { safeNext } from '@/lib/redirect';
+import { useAuthStore } from '@/lib/auth-store';
+import { homePathFor, safeNext } from '@/lib/redirect';
 import { AuthLayout } from './AuthLayout';
 import { useLogin } from './hooks';
 
@@ -29,7 +30,9 @@ export function LoginPage() {
 
   const onSubmit = handleSubmit((values) => {
     // A failed sign-in is reported by the global error handler as a toast.
-    login.mutate(values, { onSuccess: () => navigate(safeNext(params.get('next')), { replace: true }) });
+    login.mutate(values, {
+      onSuccess: () => navigate(safeNext(params.get('next'), homePathFor(useAuthStore.getState().merchant?.role)), { replace: true }),
+    });
   });
 
   return (

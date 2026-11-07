@@ -14,15 +14,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCart } from '@/features/cart/hooks';
-import { useAuthStore } from '@/lib/auth-store';
+import { useAuthStore, useIsAdmin } from '@/lib/auth-store';
+import { homePathFor } from '@/lib/redirect';
 import { cn } from '@/lib/utils';
 
-const NAV = [
+interface NavEntry {
+  to: string;
+  label: string;
+  /** Match the exact path only, so /admin is not "active" on /admin/pools. */
+  end?: boolean;
+}
+
+const MERCHANT_NAV: readonly NavEntry[] = [
   { to: '/products', label: 'Products' },
   { to: '/pools', label: 'My pools' },
   { to: '/cart', label: 'Cart' },
   { to: '/orders', label: 'My orders' },
-] as const;
+];
+
+// Admins run the platform rather than buy from it, so their navigation is the admin areas plus the catalogue.
+const ADMIN_NAV: readonly NavEntry[] = [
+  { to: '/admin', label: 'Overview', end: true },
+  { to: '/admin/pools', label: 'Pools' },
+  { to: '/admin/orders', label: 'Orders' },
+  { to: '/products', label: 'Products' },
+];
 
 function AdminBadge() {
   return (
@@ -31,15 +47,18 @@ function AdminBadge() {
 }
 
 function NavItems({ onNavigate, orientation }: { onNavigate?: () => void; orientation: 'row' | 'column' }) {
+  const isAdmin = useIsAdmin();
   const cart = useCart();
-  const cartCount = cart.data?.cartItems.length ?? 0;
+  const cartCount = !isAdmin ? (cart.data?.cartItems.length ?? 0) : 0;
+  const items = isAdmin ? ADMIN_NAV : MERCHANT_NAV;
 
   return (
     <nav aria-label="Main" className={cn('flex gap-1', orientation === 'column' ? 'flex-col' : 'items-center')}>
-      {NAV.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
+          end={item.end}
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
@@ -101,6 +120,7 @@ function UserMenu() {
 
 export function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const role = useAuthStore((state) => state.merchant?.role);
 
   return (
     <div className="min-h-screen">
@@ -119,7 +139,7 @@ export function AppShell() {
             </SheetContent>
           </Sheet>
 
-          <Link to="/products" aria-label="BulkZA home">
+          <Link to={homePathFor(role)} aria-label="BulkZA home">
             <Logo />
           </Link>
 

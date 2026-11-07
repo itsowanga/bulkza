@@ -42,6 +42,19 @@ public class BulkPoolRepository(BulkzaDbContext db) : IBulkPoolRepository
         return (pools, totalPools);
     }
 
+    public async Task<(IReadOnlyList<BulkPool>, int)> GetAllAsync(BulkPoolStatus? status, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = _db.BulkPools.Where(pool => status == null || pool.Status == status);
+        int total = await query.CountAsync(ct);
+        IReadOnlyList<BulkPool> pools = await query.OrderByDescending(pool => pool.CreatedAt).ThenBy(pool => pool.PoolId)
+                                                   .Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (pools, total);
+    }
+
+    public async Task<IReadOnlyDictionary<BulkPoolStatus, int>> CountByStatusAsync(CancellationToken ct = default) =>
+        await _db.BulkPools.GroupBy(pool => pool.Status).Select(group => new { group.Key, Count = group.Count() })
+                           .ToDictionaryAsync(row => row.Key, row => row.Count, ct);
+
     public async Task AddAsync(BulkPool pool, CancellationToken ct = default) => await _db.BulkPools.AddAsync(pool, ct);
     public void Update(BulkPool pool) => _db.BulkPools.Update(pool);
 }

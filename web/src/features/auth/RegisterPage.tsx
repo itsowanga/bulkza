@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { Field } from '@/components/Field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { safeNext } from '@/lib/redirect';
+import { useAuthStore } from '@/lib/auth-store';
+import { homePathFor, safeNext } from '@/lib/redirect';
 import { requiredText } from '@/lib/schemas';
 import { AuthLayout } from './AuthLayout';
 import { useRegister } from './hooks';
@@ -41,7 +42,7 @@ export function RegisterPage() {
   const onSubmit = handleSubmit(({ suburb, ...values }) => {
     registerMerchant.mutate(
       { ...values, ...(suburb ? { suburb } : {}) },
-      { onSuccess: () => navigate(safeNext(params.get('next')), { replace: true }) },
+      { onSuccess: () => navigate(safeNext(params.get('next'), homePathFor(useAuthStore.getState().merchant?.role)), { replace: true }) },
     );
   });
 

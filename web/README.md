@@ -10,9 +10,11 @@ You need Node 20.19 or newer and a running API. From the repository root, create
 
 ```powershell
 ./scripts/setup-local-sql.ps1
-docker compose --env-file ~/.bulkza/sql.env up -d --build --wait
+docker compose --env-file "$HOME/.bulkza/sql.env" up -d --build --wait
 ./scripts/seed-dev-products.ps1
 ```
+
+Run these from the repository root, not from `web/`.
 
 Then start the web app:
 
@@ -47,7 +49,7 @@ In development the Vite server forwards `/api` to the API, so the browser sees o
 src/
   app/          router, providers, shell, route guards, error handling
   components/   shared pieces (StatusChip, TierLadder, PoolProgress, ...) and components/ui (shadcn)
-  features/     auth, products, pools, cart, orders; each has its pages and its TanStack Query hooks
+  features/     auth, products, pools, cart, orders, admin; each has its pages and its TanStack Query hooks
   lib/          api client, auth store, JWT decoding, formatting, tier maths
   types/api.ts  TypeScript mirror of the C# DTOs
 ```
@@ -59,8 +61,19 @@ src/
 - **Pools.** Progress is `currentQuantity / minimumQuantity` and merchants against `minimumMerchants`. The tier ladder is driven by the pool's total quantity, as the API prices a finalised pool. Joining is only offered while a pool is `Open`: the API refuses new members once the threshold is met.
 - **Money.** Formatted with `Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' })`, which prints `R 1 234,56`. Change `formatZAR` in `src/lib/format.ts` for another style.
 
+## Admin
+
+A merchant with the `Admin` role gets a different app. They land on `/admin` instead of the catalogue, and the navigation becomes Overview, Pools, Orders and Products. Ordinary merchants who open an admin URL see an access message, and the API refuses them as well.
+
+| Screen | What it does |
+|--------|--------------|
+| `/admin` | The work waiting for you: pools ready to lock or finalise, orders awaiting payment, shipping or delivery, each linking to the matching filtered list. Below it, pools and orders by status. |
+| `/admin/pools` | Every pool, filterable by status (the filter is in the URL, so the dashboard can link to it). Lock, finalise, expire or cancel from the row. Only the actions that are possible right now are shown. |
+| `/admin/orders` | Every merchant's orders with the merchant's name. Opens on Paid orders. Ship paid orders and mark shipped ones delivered. |
+
+To get an admin account, see "Creating the first admin" in the root README.
+
 ## Not built yet
 
-- `/admin/pools` and `/admin/orders` need API queries that do not exist (list all pools, list orders for admins).
 - Checkout is a placeholder. The API has no "create order" route: orders are created when an admin finalises a pool, and each is paid from its own page.
 - There is no "order by id" route, so the order page finds its order by paging through `GET /api/orders/mine`.

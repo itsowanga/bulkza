@@ -7,6 +7,8 @@ public interface IOrderRepository
 {
     Task<Order?> GetOrderByIdAsync(OrderId orderId, CancellationToken ct = default);
     Task<(IReadOnlyList<Order>, int)> GetByMerchantIdAsync(MerchantId merchantId, int page, int pageSize, CancellationToken ct = default);
+    Task<(IReadOnlyList<Order>, int)> GetAllAsync(OrderStatus? status, int page, int pageSize, CancellationToken ct = default);
+    Task<IReadOnlyDictionary<OrderStatus, int>> CountByStatusAsync(CancellationToken ct = default);
     Task AddAsync(Order order, CancellationToken ct = default);
     void Update(Order order);
     Task<IReadOnlyList<Order>> GetByStatusAsync(OrderStatus status, CancellationToken ct = default);

@@ -162,6 +162,19 @@ export interface OrderStatusResult {
   status: OrderStatus;
 }
 
+// Admin (Application/Admin and Api/Controllers/Admin). Every route needs the Admin role.
+
+/** An order as an admin sees it: the merchant's own order fields plus who placed it. */
+export interface AdminOrderDto extends OrderDto {
+  merchantName: string;
+}
+
+/** Pools and orders per state. Every state is present, with 0 when empty. */
+export interface AdminSummaryDto {
+  pools: Record<BulkPoolStatus, number>;
+  orders: Record<OrderStatus, number>;
+}
+
 // Merchants (Application/Merchants and Api/Controllers/Merchants)
 
 export interface RegisterMerchantRequest {

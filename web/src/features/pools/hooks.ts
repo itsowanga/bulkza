@@ -48,6 +48,7 @@ function useRefreshPools() {
   return (poolId?: string) =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ['pools'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin'] }),
       poolId ? queryClient.invalidateQueries({ queryKey: ['pool', poolId] }) : Promise.resolve(),
     ]);
 }
