@@ -2,6 +2,7 @@ using System.Text.Json;
 using Application.Interfaces.EventBus;
 using Domain;
 using Infrastructure;
+using Infrastructure.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -83,10 +84,15 @@ public class OutboxPublisher(ILogger<OutboxPublisher> logger,
         }
     }
 
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        Converters = { new ValueObjectJsonConverterFactory() }
+    };
+
     private static object Deserialize(OutboxMessage message)
     {
         var type = Type.GetType(message.Type) ?? throw new InvalidOperationException($"Unknown event type: {message.Type}");
-        return JsonSerializer.Deserialize(message.Content, type) ?? throw new InvalidOperationException($"Content serialized to null: {message.Type}");
+        return JsonSerializer.Deserialize(message.Content, type, JsonOptions) ?? throw new InvalidOperationException($"Content serialized to null: {message.Type}");
     }
 
 
