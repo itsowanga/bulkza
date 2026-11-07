@@ -13,10 +13,7 @@ public class BrowseActiveProductsHandler(IProductRepository product)
         if (query.PageSize < 1 || query.PageSize > 50) throw new ArgumentException("Page size must be between 1 and 50.");
         if (query.Category is not null && Enum.IsDefined((ProductCategory)query.Category) != true) throw new ArgumentException("Category entered is invalid.");
         var (products, totalProducts) = await _product.GetActiveAsync(query.Page, query.PageSize, query.Category, ct);
-        var dtos = products.Select(product => new ProductDto(product.ProductId.Value,
-                                product.Name,
-                                product.SKU,
-                                product.BasePrice.Amount)).ToList();
+        var dtos = products.Select(ProductDto.From).ToList();
 
         return new(dtos, totalProducts, query.Page, query.PageSize);
         

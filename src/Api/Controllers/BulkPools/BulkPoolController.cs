@@ -2,10 +2,12 @@ using Application.BulkPools.CancelPool;
 using Application.BulkPools.CreatePool;
 using Application.BulkPools.ExpirePool;
 using Application.BulkPools.FinalisePool;
+using Application.BulkPools.GetPool;
 using Application.BulkPools.JoinPool;
 using Application.BulkPools.LeavePool;
 using Application.BulkPools.LockPool;
 using Application.BulkPools.SearchPool.SearchByMerchant;
+using Application.BulkPools.SearchPool.SearchOpenByProductId;
 using Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +23,9 @@ public class BulkPoolsController(CreatePoolHandler create,
                                  FinalisePoolHandler finalise,
                                  ExpirePoolHandler expire,
                                  CancelPoolHandler cancel,
-                                 SearchByMerchantHandler searchMine)
+                                 SearchByMerchantHandler searchMine,
+                                 GetPoolHandler getPool,
+                                 SearchOpenByProductIdHandler searchOpen)
 : ControllerBase
 {
     private readonly CreatePoolHandler _create = create;
@@ -32,6 +36,8 @@ public class BulkPoolsController(CreatePoolHandler create,
     private readonly ExpirePoolHandler _expire = expire;
     private readonly CancelPoolHandler _cancel = cancel;
     private readonly SearchByMerchantHandler _searchMine = searchMine;
+    private readonly GetPoolHandler _getPool = getPool;
+    private readonly SearchOpenByProductIdHandler _searchOpen = searchOpen;
 
     [Authorize]
     [HttpPost]
@@ -48,6 +54,30 @@ public class BulkPoolsController(CreatePoolHandler create,
                                                          request.Deadline);
 
         var result = await _create.Handle(command, ct);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetPool(Guid id, CancellationToken ct)
+    {
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        GetPoolQuery query = new(PoolId.Create(id), MerchantId.Create((Guid)merchantId));
+        var result = await _getPool.Handle(query, ct);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpGet("open")]
+    public async Task<IActionResult> GetOpenPools([FromQuery] Guid productId, [FromQuery] int page, [FromQuery] int pageSize, CancellationToken ct)
+    {
+        var merchantId = User.GetMerchantId();
+        if (merchantId is null) return Unauthorized();
+
+        SearchOpenByProductIdQuery query = new(ProductId.Create(productId), MerchantId.Create((Guid)merchantId), page, pageSize);
+        var result = await _searchOpen.Handle(query, ct);
         return Ok(result);
     }
 

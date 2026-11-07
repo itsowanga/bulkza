@@ -90,6 +90,9 @@ src/
     Api/
     Worker/
 
+web/                       (React app, see web/README.md)
+scripts/                   (local database setup and seed scripts)
+
 tests/
     Domain.Tests/
     Api.Tests/
@@ -217,9 +220,9 @@ All routes sit under `/api`. Every route requires a bearer token except register
 | Controller | Routes |
 |------------|--------|
 | `merchants` | `POST register`, `POST login` |
-| `products` | `GET browse`, `GET search/name`, `GET search/sku` |
+| `products` | `GET browse`, `GET {id}`, `GET search/name`, `GET search/sku` |
 | `carts` | `GET`, `POST items`, `PUT items/{productId}`, `DELETE items/{productId}`, `DELETE clear` |
-| `bulkpools` | `POST`, `GET mine`, `POST {id}/join`, `POST {id}/leave`, `POST {id}/lock`, `POST {id}/finalise`, `POST {id}/expire`, `POST {id}/cancel` |
+| `bulkpools` | `POST`, `GET {id}`, `GET mine`, `GET open?productId=`, `POST {id}/join`, `POST {id}/leave`, `POST {id}/lock`, `POST {id}/finalise`, `POST {id}/expire`, `POST {id}/cancel` |
 | `orders` | `GET mine`, `POST {id}/pay`, `POST {id}/cancel`, `POST {id}/ship`, `POST {id}/deliver` |
 
 Conventions:
@@ -227,6 +230,8 @@ Conventions:
 - Controllers use request and response DTOs, not domain entities.
 - Errors return RFC 7807 `ProblemDetails` through `GlobalExceptionHandler`.
 - The merchant id comes from JWT claims, not the request body.
+- JSON is camelCase and enums are strings, for example `"status": "ThresholdMet"`. The `category` filter on `GET products/browse` accepts a name such as `Rice`.
+- `GET products/search/name` matches the start of a product name, not any part of it.
 - Exception mapping: `ArgumentException` and `InvalidOperationException` return 400, `UnauthorizedAccessException` and `AuthenticationException` (failed login) return 401, `KeyNotFoundException` returns 404, anything else returns 500. A 500 response carries a generic message, not the exception text.
 
 Middleware order: exception handler, authentication, authorization, controllers.
@@ -405,6 +410,24 @@ docker compose --env-file ~/.bulkza/sql.env up -d --build --wait
 - Stop everything with `docker compose --env-file ~/.bulkza/sql.env down`. The database volume is kept. Add `-v` only if you want to delete the data.
 
 The compose file has no default password and refuses to start without `MSSQL_SA_PASSWORD`, `BULKZA_APP_PASSWORD` and `JWT_SECRET`. `.env.example` shows the variable names. Run migrations with the setup script or the `dotnet ef` command below, since neither app applies them on startup.
+
+### Sample products and the web app
+
+The API has no "create product" route yet. Add sample products to the local database with:
+
+```powershell
+./scripts/seed-dev-products.ps1
+```
+
+The merchant web app lives in `web/`. It runs against the API on port 8080 through a dev proxy:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+See [web/README.md](web/README.md) for settings, layout and what is not built yet.
 
 ### Rotating secrets
 

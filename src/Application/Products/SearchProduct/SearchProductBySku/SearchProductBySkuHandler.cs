@@ -12,6 +12,6 @@ public class SearchProductBySkuHandler(IProductRepository product)
     {
         var result = await _product.GetBySkuAsync(query.Sku.Trim(), ct);
         if (result == default) throw new KeyNotFoundException("Product with the entered SKU is not found.");
-        return new(result.ProductId.Value, result.Name, result.SKU, result.BasePrice.Amount);
+        return ProductDto.From(result);
     }
 }

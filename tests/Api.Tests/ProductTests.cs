@@ -32,7 +32,7 @@ public class ProductTests
 
         var response = await client.GetAsync($"/api/products/browse?page=1&pageSize=10&category={null}");
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>();
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>(TestJson.Options);
         result!.PageSize.Should().Be(10); 
         result.Items[0].ProductId.Should().Be(productId.Value);
     }
@@ -54,7 +54,7 @@ public class ProductTests
 
         var response = await client.GetAsync($"/api/products/browse?page=1&pageSize=10&category=0");
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>();
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<ProductDto>>(TestJson.Options);
         result!.PageSize.Should().Be(10); 
         result!.Page.Should().Be(1);
         result.Items.Count.Should().Be(1);
@@ -101,7 +101,7 @@ public class ProductTests
 
         var response = await client.GetAsync($"/api/products/search/sku?sku=sku-12345678910");
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<ProductDto>();
+        var result = await response.Content.ReadFromJsonAsync<ProductDto>(TestJson.Options);
         result!.Sku.Should().Be(sku);
     }
 

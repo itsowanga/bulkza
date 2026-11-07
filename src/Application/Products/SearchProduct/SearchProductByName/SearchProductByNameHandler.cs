@@ -12,12 +12,7 @@ public class SearchProductByNameHandler(IProductRepository product)
         if (query.Page < 1) throw new ArgumentException("Page number cannot be less than 1.");
         if (query.PageSize < 1 || query.PageSize > 50) throw new ArgumentException("Page size must be between 1 and 50.");
         var (products, totalCount) = await _product.GetByNameAsync(query.Name, query.Page, query.PageSize, ct);
-        var dtos = products.Select(product => new ProductDto(
-                            product.ProductId.Value,
-                            product.Name,
-                            product.SKU,
-                            product.BasePrice.Amount
-        )).ToList();
+        var dtos = products.Select(ProductDto.From).ToList();
 
         return new (dtos, totalCount, query.Page, query.PageSize);
 

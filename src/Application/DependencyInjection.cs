@@ -2,6 +2,7 @@ using Application.BulkPools.CancelPool;
 using Application.BulkPools.CreatePool;
 using Application.BulkPools.ExpirePool;
 using Application.BulkPools.FinalisePool;
+using Application.BulkPools.GetPool;
 using Application.BulkPools.JoinPool;
 using Application.BulkPools.LeavePool;
 using Application.BulkPools.LockPool;
@@ -22,10 +23,12 @@ using Application.Orders.CancelOrder;
 using Application.Orders.CreateOrder;
 using Application.Orders.MarkAsDelivered;
 using Application.Orders.MarkAsShipped;
+using Application.Orders.SearchOrders.FindAllOrderByMerchant;
 using Application.PaymentGateway.ProcessPayment;
 using Application.Products.ActivateProduct;
 using Application.Products.CreateProduct;
 using Application.Products.DeactivateProduct;
+using Application.Products.GetProduct;
 using Application.Products.SearchProduct.BrowseActiveProducts;
 using Application.Products.SearchProduct.SearchProductByName;
 using Application.Products.SearchProduct.SearchProductBySku;
@@ -46,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<CreatePoolHandler>();
         services.AddScoped<ExpirePoolHandler>();
         services.AddScoped<FinalisePoolHandler>();
+        services.AddScoped<GetPoolHandler>();
         services.AddScoped<JoinPoolHandler>();
         services.AddScoped<LeavePoolHandler>();
         services.AddScoped<LockPoolHandler>();
@@ -73,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<CreateOrderHandler>();
         services.AddScoped<MarkAsDeliveredHandler>();
         services.AddScoped<MarkAsShippedHandler>();
+        services.AddScoped<FindAllOrderByMerchantHandler>();
 
         // Payment gateway handler
         services.AddScoped<ProcessPaymentHandler>();
@@ -81,6 +86,7 @@ public static class DependencyInjection
         services.AddScoped<ActivateProductHandler>();
         services.AddScoped<CreateProductHandler>();
         services.AddScoped<DeactivateProductHandler>();
+        services.AddScoped<GetProductHandler>();
         services.AddScoped<UpdateBasePriceHandler>();
         services.AddScoped<UpdateCategoryHandler>();
         services.AddScoped<UpdateDescriptionHandler>();
