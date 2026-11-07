@@ -17,6 +17,36 @@ public class BulkPoolTests
         _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
     }
 
+    private async Task<HttpClient> CreateAdminClientAsync()
+    {
+        var (phone, password) = await TestDataSeeder.SeedAdminAsync(_fixture);
+        return await _fixture.CreateAuthenticatedClientAsync(phone, password);
+    }
+
+    [Theory]
+    [InlineData("lock")]
+    [InlineData("finalise")]
+    [InlineData("expire")]
+    [InlineData("cancel")]
+    public async Task PoolAdminActions_AsNonAdminMerchant_ReturnForbiddenAndLeavePoolOpen(string action)
+    {
+        ProductId product = ProductId.New();
+        var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
+                                                                    "White Star 1kg", null, ProductCategory.MaizeMeal,
+                                                                    UnitOfMeasure.Kilogram, Money.Create(59.99m), true));
+
+        var created = await BulkPoolHelper.CreatePoolAsync(client, 150, product.Value, 100, 1, DateTimeOffset.UtcNow.AddDays(30));
+        created.EnsureSuccessStatusCode();
+        var poolId = (await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10)).Items[0].PoolId;
+
+        var response = await client.PostAsync($"/api/bulkpools/{poolId}/{action}", null);
+
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.Forbidden);
+        var pools = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
+        pools.Items[0].Status.Should().BeOneOf(BulkPoolStatus.Open, BulkPoolStatus.ThresholdMet);
+    }
+
     [Fact]
     public async Task GetMyPools_WithInvalidPagination_ReturnsBadRequest()
     {
@@ -172,6 +202,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -183,7 +214,7 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var lockPool = await client.PostAsync($"/api/bulkpools/{poolId}/lock", null);
+        var lockPool = await admin.PostAsync($"/api/bulkpools/{poolId}/lock", null);
         lockPool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
              
     }
@@ -193,6 +224,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -204,7 +236,7 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var lockPool = await client.PostAsync($"/api/bulkpools/{poolId}/lock", null);
+        var lockPool = await admin.PostAsync($"/api/bulkpools/{poolId}/lock", null);
         lockPool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
              
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
@@ -216,6 +248,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -227,10 +260,10 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var lockPool = await client.PostAsync($"/api/bulkpools/{poolId}/lock", null);         
+        var lockPool = await admin.PostAsync($"/api/bulkpools/{poolId}/lock", null);         
         lockPool.EnsureSuccessStatusCode();
 
-        var finalisePool = await client.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
+        var finalisePool = await admin.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
         finalisePool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
@@ -242,6 +275,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -253,7 +287,7 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var finalisePool = await client.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
+        var finalisePool = await admin.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
         finalisePool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
  
     }
@@ -263,6 +297,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -274,7 +309,7 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var cancelPool = await client.PostAsync($"/api/bulkpools/{poolId}/cancel", null);
+        var cancelPool = await admin.PostAsync($"/api/bulkpools/{poolId}/cancel", null);
         cancelPool.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
@@ -286,6 +321,7 @@ public class BulkPoolTests
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
+        var admin = await CreateAdminClientAsync();
         await TestDataSeeder.SeedProductsAsync(_fixture, new Product(product, "sku-12345678910",
                                                                     "White Star 1kg", null, ProductCategory.MaizeMeal, 
                                                                     UnitOfMeasure.Kilogram, Money.Create(59.99m), true)
@@ -297,13 +333,13 @@ public class BulkPoolTests
         var result = await BulkPoolHelper.GetMyPoolsAsync(client, 1, 10);
         var poolId = result.Items[0].PoolId; 
 
-        var lockPool = await client.PostAsync($"/api/bulkpools/{poolId}/lock", null);         
+        var lockPool = await admin.PostAsync($"/api/bulkpools/{poolId}/lock", null);         
         lockPool.EnsureSuccessStatusCode();
 
-        var finalisePool = await client.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
+        var finalisePool = await admin.PostAsync($"/api/bulkpools/{poolId}/finalise", null);
         finalisePool.EnsureSuccessStatusCode();
 
-        var cancelPool = await client.PostAsync($"/api/bulkpools/{poolId}/cancel", null);
+        var cancelPool = await admin.PostAsync($"/api/bulkpools/{poolId}/cancel", null);
         cancelPool.StatusCode.Should().Be(System.Net.HttpStatusCode.BadRequest);
     }
 

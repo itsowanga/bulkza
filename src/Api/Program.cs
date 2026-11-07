@@ -1,4 +1,5 @@
 using Api.ExceptionHandling;
+using Api.Seeding;
 using Application;
 using Application.Interfaces;
 using Infrastructure;
@@ -32,6 +33,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
     };
 });
+
+builder.Services.Configure<AdminSeedOptions>(builder.Configuration.GetSection(AdminSeedOptions.SectionName));
+builder.Services.AddHostedService<AdminSeeder>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
