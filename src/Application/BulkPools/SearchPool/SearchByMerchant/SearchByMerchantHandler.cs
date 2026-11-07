@@ -11,7 +11,7 @@ public class SearchByMerchantHandler(IBulkPoolRepository pool)
     public async Task<PagedResult<BulkPoolDto>> Handle(SearchByMerchantQuery query, CancellationToken ct)
     {
         if (query.Page < 1) throw new ArgumentException("Page number cannot be less than 1.");
-        if (query.PageSize > 50) throw new ArgumentException("Page size cannot exceed 50.");
+        if (query.PageSize < 1 || query.PageSize > 50) throw new ArgumentException("Page size must be between 1 and 50.");
         var (pools, totalPools) = await _pool.GetByMerchantIdAsync(query.MerchantId, query.Page, query.PageSize, ct);
         var dtos = pools.Select(pool => 
         {

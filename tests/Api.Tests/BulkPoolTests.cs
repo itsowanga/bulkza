@@ -53,13 +53,13 @@ public class BulkPoolTests
 
 
     [Fact]
-    public async Task CreatePool_WithInvalidProduct_ReturnsInternalServer()
+    public async Task CreatePool_WithUnknownProduct_ReturnsNotFound()
     {
         ProductId product = ProductId.New();
         var client = await _fixture.CreateAuthenticatedClientAsync("0859954789", "$tr0ngP@ssw0rd");
         var response = await BulkPoolHelper.CreatePoolAsync(client, 100, product.Value, 150, 10, DateTimeOffset.UtcNow.AddDays(30));
 
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
+        response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
     }
 
     [Fact]
