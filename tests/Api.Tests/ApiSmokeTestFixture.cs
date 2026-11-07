@@ -39,6 +39,11 @@ public sealed class ApiSmokeTestFixture : IAsyncLifetime
             {
                 builder.UseEnvironment("Testing");
 
+                // The committed appsettings.json holds no secrets, so the tests supply their own.
+                // The JWT key is random per test run and never leaves memory.
+                builder.UseSetting("ConnectionStrings:DefaultConnection", _connectionString);
+                builder.UseSetting("Jwt:Secret", Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64)));
+
                 builder.ConfigureServices(services =>
                 {
                 

@@ -349,34 +349,83 @@ It is a development fallback, not a message broker. Nothing is stored, delivered
 
 ### Run
 
-```bash
+Create the local database server once. The script needs PowerShell 7 and a running Docker Desktop:
+
+```powershell
 git clone <repo-url>
 cd bulkza
-export MSSQL_SA_PASSWORD='<choose a strong password>'
-docker compose up -d
+./scripts/setup-local-sql.ps1
+```
+
+The script:
+
+- generates the `sa` password, a password for a limited `bulkza_app` login, and a JWT signing key, using a cryptographic random generator,
+- saves the two database passwords in `~/.bulkza/sql.env`, outside the repository and outside any OneDrive folder, readable only by you,
+- starts a SQL Server 2025 Developer container named `bulkza-sql`, bound to `127.0.0.1` on port **14330** (not 1433, because a SQL Server installed on the machine usually owns that port),
+- creates the `bulkza` database and the `bulkza_app` login, which the Api and Worker use instead of `sa`,
+- stores the connection string and JWT key in .NET user secrets for `src/Api` and `src/Worker`,
+- applies the EF Core migrations.
+
+It never prints a secret. Running it again is safe and reuses the existing secrets. Then start the apps:
+
+```bash
 dotnet restore
 dotnet build
 dotnet run --project src/Api
 ```
 
-Run the outbox publisher in a second terminal. It needs the same database connection string as the Api and fails at startup with a clear message if it is missing:
+Run the outbox publisher in a second terminal. It reads the same user secret, and fails at startup with a clear message if the connection string is missing:
 
 ```bash
-export ConnectionStrings__DefaultConnection='<same SQL Server connection string as the Api>'
 dotnet run --project src/Worker
 ```
 
-On PowerShell use `$env:ConnectionStrings__DefaultConnection = '<connection string>'`. You can also use user secrets: `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<connection string>" --project src/Worker`. The Worker needs no Azure Service Bus settings. It logs each published event through `LoggingEventBus`.
+The Worker needs no Azure Service Bus settings. It logs each published event through `LoggingEventBus`. To create the first admin, see [Creating the first admin](#creating-the-first-admin).
 
-`docker-compose.yml` starts a single SQL Server 2025 Developer container named `bulkza` on port 1433, with a named volume and a health check. It reads the SA password from `MSSQL_SA_PASSWORD`.
+### Run everything in Docker
 
-The Api does not apply migrations on startup. Apply them before the first run. The design-time factory has its own connection string, so pass yours explicitly:
+`docker-compose.yml` defines three services: `sqlserver`, `api` and `worker`. After the setup script has created the secrets, build and start the whole stack:
 
 ```bash
+docker compose --env-file ~/.bulkza/sql.env up -d --build --wait
+```
+
+| Service | Container | Address |
+|---------|-----------|---------|
+| `sqlserver` | `bulkza-sql` | `127.0.0.1:14330` on the host |
+| `api` | `bulkza-api` | `http://127.0.0.1:8080` |
+| `worker` | `bulkza-worker` | no port |
+
+- The `Dockerfile` builds both apps. It holds no secrets. Configuration arrives as environment variables from the env file when the container starts.
+- The Api and Worker wait for the database to be healthy, reach it by the service name `sqlserver`, and connect as the limited `bulkza_app` login.
+- All ports are bound to `127.0.0.1`. Change the Api port with `BULKZA_API_PORT` in the env file.
+- To create the first admin, add `ADMIN_SEED_PHONE` and `ADMIN_SEED_PASSWORD` to the env file and recreate the `api` container. Leave them out to skip it.
+- The containers restart automatically (`unless-stopped`), including after a reboot.
+- Rebuild after code changes with the same command. Follow logs with `docker compose --env-file ~/.bulkza/sql.env logs -f api worker`.
+- Stop everything with `docker compose --env-file ~/.bulkza/sql.env down`. The database volume is kept. Add `-v` only if you want to delete the data.
+
+The compose file has no default password and refuses to start without `MSSQL_SA_PASSWORD`, `BULKZA_APP_PASSWORD` and `JWT_SECRET`. `.env.example` shows the variable names. Run migrations with the setup script or the `dotnet ef` command below, since neither app applies them on startup.
+
+### Rotating secrets
+
+```powershell
+./scripts/setup-local-sql.ps1 -Rotate
+```
+
+This generates new `sa` and app passwords and a new JWT key. It changes the passwords inside SQL Server, rewrites the env file, recreates the SQL Server container and any running Api and Worker containers, and updates the user secrets. Old passwords stop working at once. Old JWTs stop working too, so everyone logs in again.
+
+Rotate whenever a secret may have been seen by someone who should not have it. For a shared or deployed database, rotate the same way and put the new values in your secret store or environment variables, never in a file in the repository.
+
+### Migrations
+
+The Api does not apply migrations on startup. The setup script applies them. To apply them yourself:
+
+```bash
+dotnet tool restore
 dotnet ef database update --project src/Infrastructure --connection '<connection string>'
 ```
 
-The `dotnet-ef` tool is pinned in `dotnet-tools.json`. Run `dotnet tool restore` first.
+The design-time factory holds no credentials. Commands that need a database must get one through `--connection` or the `ConnectionStrings__DefaultConnection` environment variable. Commands that only read the model, such as `dotnet ef migrations add`, need no connection.
 
 ### Run tests
 
@@ -408,9 +457,16 @@ Settings load from `appsettings.json`, environment-specific files, and environme
 | `OutboxPublisher:InitialRetryDelay` | Worker | Delay before retry 1. Doubles each retry. Default 5 seconds. Must be greater than zero. |
 | `OutboxPublisher:MaxRetryDelay` | Worker | Upper bound for the retry delay. Default 5 minutes. Must be at least `InitialRetryDelay`. |
 
-The Worker validates these settings when it starts and refuses to run with invalid values. `Worker/appsettings.json` ships with an empty `ConnectionStrings:DefaultConnection`. Supply the real value through user secrets or the `ConnectionStrings__DefaultConnection` environment variable.
+The Worker validates these settings when it starts and refuses to run with invalid values.
 
-Do not commit real connection strings or signing keys. Use user secrets or environment variables for local values, for example `ConnectionStrings__DefaultConnection` and `Jwt__Secret`.
+### Secrets
+
+The committed `appsettings.json` files hold **no secrets**. `ConnectionStrings:DefaultConnection` and `Jwt:Secret` are empty in the repository and must come from user secrets (set by `scripts/setup-local-sql.ps1`) or from environment variables such as `ConnectionStrings__DefaultConnection` and `Jwt__Secret`.
+
+- Never commit a real connection string, password or signing key, and never paste one into an issue, chat or log.
+- The Api and Worker connect as the limited `bulkza_app` login, not `sa`.
+- The database port is bound to `127.0.0.1` only.
+- The Api tests run in a throwaway container with a random password and a random JWT key per run, so they need no secrets from you.
 
 ---
 

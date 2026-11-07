@@ -1,29 +1,21 @@
 services:
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-
-    image: bulkza-api:dev
-    ports:
-     - "${API_PORT:-8080}:80"
-    environment:
-      - ASPNETCORE_ENVIRONMENT: Development
-        ConnectionString_Default: ""
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2025-latest
-    container_name: bulkza
+    container_name: bulkza-sql
     restart: unless-stopped
     environment:
-      ACCEPT_UELA: "Y"
-      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      ACCEPT_EULA: "Y"
+      # No default on purpose: compose refuses to start without it, so no password is ever committed.
+      # Run scripts/setup-local-sql.ps1 to generate it, or pass your own file with --env-file.
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?MSSQL_SA_PASSWORD is not set. Run scripts/setup-local-sql.ps1 or pass --env-file}
       MSSQL_PID: "Developer"
-    
     ports:
-      - "1433:1433"
+      # Localhost only, so the database is not reachable from other machines.
+      # Not 1433 by default: a SQL Server installed on the host usually owns that port.
+      - "127.0.0.1:${BULKZA_SQL_PORT:-14330}:1433"
     volumes:
-      - bulkza-sqldata:/var/opt/mssql
+      - bulkza-sql-data:/var/opt/mssql
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q 'SELECT 1' || exit 1"]
       interval: 10s
@@ -31,5 +23,44 @@ services:
       retries: 10
       start_period: 30s
 
+  api:
+    build:
+      context: .
+      target: api
+      args:
+        PROJECT: Api
+    image: bulkza-api:dev
+    container_name: bulkza-api
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # The containers reach the database by service name, as the limited bulkza_app login, never as sa.
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=bulkza;User Id=bulkza_app;Password=${BULKZA_APP_PASSWORD:?BULKZA_APP_PASSWORD is not set};TrustServerCertificate=True
+      Jwt__Secret: ${JWT_SECRET:?JWT_SECRET is not set}
+      # Optional. Set both in your env file to create the first admin at startup. Leave empty to skip.
+      AdminSeed__Phone: ${ADMIN_SEED_PHONE:-}
+      AdminSeed__Password: ${ADMIN_SEED_PASSWORD:-}
+    ports:
+      - "127.0.0.1:${BULKZA_API_PORT:-8080}:8080"
+
+  worker:
+    build:
+      context: .
+      target: worker
+      args:
+        PROJECT: Worker
+    image: bulkza-worker:dev
+    container_name: bulkza-worker
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=bulkza;User Id=bulkza_app;Password=${BULKZA_APP_PASSWORD:?BULKZA_APP_PASSWORD is not set};TrustServerCertificate=True
+
 volumes:
-  bulkza:
+  bulkza-sql-data:
