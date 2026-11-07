@@ -1,4 +1,16 @@
 services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: bulkza-api:dev
+    ports:
+     - "${API_PORT:-8080}:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT: Development
+        ConnectionString_Default: ""
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: bulkza

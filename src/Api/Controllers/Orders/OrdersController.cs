@@ -55,7 +55,7 @@ public class OrdersController ( ProcessPaymentHandler pay,
     {
 
         var merchantRole = User.GetMerchantRole();
-        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Unauthorized();
+        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Forbid();
         
         MarkAsShippedCommand command = new(OrderId.Create(id));
         var result = await _ship.Handle(command, ct);
@@ -67,7 +67,7 @@ public class OrdersController ( ProcessPaymentHandler pay,
     public async Task<IActionResult> Deliver(Guid id, CancellationToken ct)
     {
         var merchantRole = User.GetMerchantRole();
-        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Unauthorized();
+        if ((merchantRole is null) || (merchantRole != Domain.Enums.MerchantRole.Admin)) return Forbid();
 
         MarkAsDeliveredCommand command = new(OrderId.Create(id));
         var result = await _deliver.Handle(command, ct);
