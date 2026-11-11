@@ -1,0 +1,16 @@
+# Keep the build context small and keep secrets out of it.
+**/bin/
+**/obj/
+build/
+.git/
+.vs/
+.vscode/
+.idea/
+tests/
+scripts/
+*.md
+.env
+.env.*
+**/appsettings.Development.json
+**/*.user
+**/launchSettings.json

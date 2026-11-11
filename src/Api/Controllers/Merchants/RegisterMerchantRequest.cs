@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices;
 
 namespace Api.Controllers.Merchants;
 public record RegisterMerchantRequest
@@ -12,5 +11,5 @@ public record RegisterMerchantRequest
     [Required] string Province,
     [Required] string PostalCode,
     [Required] string Country,
-    [Optional] string Suburb
+    string? Suburb = null
 );

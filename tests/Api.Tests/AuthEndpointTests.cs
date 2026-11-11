@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Domain.ValueObjects;
 using FluentAssertions;
 using Infrastructure;
@@ -19,6 +20,30 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         _factory = factory;
         _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
         
+    }
+
+    [Fact]
+    public async Task Register_WithoutASuburb_Succeeds_BecauseTheSuburbIsOptional()
+    {
+        var phoneNumber = "0825547878";
+        var password = "$tr0ngP@ssw0rd";
+
+        var register = await _fixture.Client.PostAsJsonAsync("/api/merchants/register", new
+        {
+            name = "No Suburb Traders",
+            phoneNumber,
+            password,
+            street = "45 Voortrekker Rd",
+            city = "Aliwal North",
+            province = "Eastern Cape",
+            postalCode = "9750",
+            country = "South Africa"
+        });
+
+        register.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        var (client, login) = await AuthHelper.LoginMerchant(_fixture, _factory, phoneNumber, password);
+        login.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        client.Should().NotBeNull();
     }
 
     [Fact]
@@ -77,7 +102,7 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task Login_WithWrongPassword_ReturnsInternalServer()
+    public async Task Login_WithWrongPassword_ReturnsUnauthorized()
     {
         var phoneNumber = "0825547878";
         var password = "$tr0ngP@ssw0rd";
@@ -86,13 +111,13 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         var (client, message) = await AuthHelper.LoginMerchant(_fixture, _factory, phoneNumber, "$tr0ngP@sswrd");
-        message.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
+        message.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
         client.Should().BeNull();
 
     }
 
     [Fact]
-    public async Task Login_WithWrongPhone_ReturnsInternalServer()
+    public async Task Login_WithWrongPhone_ReturnsUnauthorized()
     {
         var phoneNumber = "0825547878";
         var password = "$tr0ngP@ssw0rd";
@@ -101,7 +126,7 @@ public class AuthEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
 
         var (client, message) = await AuthHelper.LoginMerchant(_fixture, _factory, "0855689987", password);
-        message.StatusCode.Should().Be(System.Net.HttpStatusCode.InternalServerError);
+        message.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
         client.Should().BeNull();
 
     }

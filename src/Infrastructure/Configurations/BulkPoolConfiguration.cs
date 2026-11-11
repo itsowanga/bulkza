@@ -35,7 +35,7 @@ public class BulkPoolConfiguration : IEntityTypeConfiguration<BulkPool>
         .IsRequired();
 
         builder.Property(pool => pool.Participants)
-            .Metadata.SetValueComparer(new ValueComparer<List<Participant>>(
+            .Metadata.SetValueComparer(new ValueComparer<IReadOnlyList<Participant>>(
                 (a, b) => a!.SequenceEqual(b!),
                 v => v.Aggregate(0, (hash, p) => HashCode.Combine(hash, p.GetHashCode())),
                 v => v.Select(p => p).ToList()  

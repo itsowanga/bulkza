@@ -102,6 +102,31 @@ public class VolumePricingStrategyTests
     }
 
     [Fact]
+    public void CalculateUnitPrice_ResultHasMoreThanTwoDecimals_RoundsToTwoDecimals()
+    {
+        var strategy = CreateStrategy();
+
+        // 99.99 * 0.95 = 94.9905
+        var result = strategy.CalculateUnitPrice(Money.Create(99.99m), 10);
+
+        result.Amount.Should().Be(94.99m);
+    }
+
+    [Fact]
+    public void CalculateUnitPrice_ResultIsExactMidpoint_RoundsAwayFromZero()
+    {
+        var strategy = new VolumePricingStrategy(new[]
+        {
+            DiscountTier.Create(Quantity.Create(10), 50m),
+        });
+
+        // 0.05 * 0.50 = 0.025
+        var result = strategy.CalculateUnitPrice(Money.Create(0.05m), 10);
+
+        result.Amount.Should().Be(0.03m);
+    }
+
+    [Fact]
     public void CalculateUnitPrice_UnorderedTiers_StillPicksHighestApplicableDiscount()
     {
         var strategy = new VolumePricingStrategy(new[]

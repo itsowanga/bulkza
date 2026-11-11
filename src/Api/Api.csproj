@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-Api-5b7a2f64-3c1e-4d8a-9f0b-6a2d41c7e853</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

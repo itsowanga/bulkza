@@ -13,27 +13,11 @@ public class FindAllOrderByMerchantHandler(IOrderRepository order)
     public async Task<PagedResult<OrderDto>> Handle(FindAllOrderByMerchantQuery query, CancellationToken ct)
     {
         if (query.Page < 1) throw new ArgumentException("Page number cannot be less than 1.");
-        if (query.PageSize > 50) throw new ArgumentException("Page size cannot exceed 50.");
+        if (query.PageSize < 1 || query.PageSize > 50) throw new ArgumentException("Page size must be between 1 and 50.");
         var (orders, totalOrders) = await _order.GetByMerchantIdAsync(query.MerchantId, query.Page, query.PageSize, ct);
 
         
-           var dtos = orders.Select(order => 
-    {
-        var lineDtos = order.OrderLines
-            .Select(line => new OrderLineDto(line.ProductId.Value, line.Quantity.Value, line.UnitPrice.Amount))
-            .ToList();
-
-        return new OrderDto(
-            order.OrderId.Value, 
-            order.MerchantId.Value,
-            order.Status, 
-            order.TotalAmount.Amount, 
-            order.CreatedAt, 
-            order.RefundId,
-            order.PaymentId,
-            lineDtos
-        );
-    }).ToList();
+           var dtos = orders.Select(OrderDto.From).ToList();
 
         return new(dtos, totalOrders, query.Page, query.PageSize);
 

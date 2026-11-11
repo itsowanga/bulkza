@@ -19,7 +19,7 @@ public class ProductRepository(BulkzaDbContext db) : IProductRepository
             return await GetActiveAsync(page, pageSize, null, ct);
         }
         int totalProducts = await _db.Products.Where(product => product.Name.StartsWith(name) && (product.IsActive == true)).CountAsync(ct);
-        IReadOnlyList<Product> products = await _db.Products.Where(product => product.Name.StartsWith(name) && (product.IsActive == true)).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        IReadOnlyList<Product> products = await _db.Products.Where(product => product.Name.StartsWith(name) && (product.IsActive == true)).OrderBy(product => product.Name).ThenBy(product => product.ProductId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         
         return (products, totalProducts);
     }
@@ -28,12 +28,12 @@ public class ProductRepository(BulkzaDbContext db) : IProductRepository
         if (category is null)
         {
             int totalProducts_ = await _db.Products.Where(product => product.IsActive).CountAsync(ct);
-            IReadOnlyList<Product> products_ = await _db.Products.Where(product => product.IsActive).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+            IReadOnlyList<Product> products_ = await _db.Products.Where(product => product.IsActive).OrderBy(product => product.Name).ThenBy(product => product.ProductId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
             return (products_, totalProducts_);
         }
 
         int totalProducts = await _db.Products.Where(product => product.IsActive && (product.Category == category)).CountAsync(ct);
-        IReadOnlyList<Product> products = await _db.Products.Where(product => product.IsActive && (product.Category == category)).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        IReadOnlyList<Product> products = await _db.Products.Where(product => product.IsActive && (product.Category == category)).OrderBy(product => product.Name).ThenBy(product => product.ProductId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return (products, totalProducts);
     }
 
